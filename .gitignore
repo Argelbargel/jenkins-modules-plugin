@@ -1,0 +1,6 @@
+.idea/
+.gradle/
+.vagrant/
+build/
+deploy_key
+*.log

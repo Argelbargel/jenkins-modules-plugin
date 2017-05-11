@@ -1,0 +1,33 @@
+language: java
+
+jdk:
+  - oraclejdk8
+
+install: true
+before_install:
+  - chmod +x travis/*.sh
+script: ./travis/install.sh
+env:
+  global:
+    - PUBLISH_BRANCH="mvn-repo"
+    - DEPLOY_KEY_ID="1645300b04d0"
+
+deploy:
+  provider: releases
+  api_key: "$GITHUB_API_TOKEN"
+  skip_cleanup: true
+  on:
+    tags: true
+  file:
+    - "build/repo/argelbargel/gradle/plugins/gradle-jpi-plugin/$TRAVIS_TAG/gradle-jpi-plugin-$TRAVIS_TAG.jar"
+    - "build/repo/argelbargel/gradle/plugins/gradle-jpi-plugin/$TRAVIS_TAG/gradle-jpi-plugin-$TRAVIS_TAG.jar.md5"
+    - "build/repo/argelbargel/gradle/plugins/gradle-jpi-plugin/$TRAVIS_TAG/gradle-jpi-plugin-$TRAVIS_TAG.jar.sha1"
+    - "build/repo/argelbargel/gradle/plugins/gradle-jpi-plugin/$TRAVIS_TAG/gradle-jpi-plugin-$TRAVIS_TAG.pom"
+    - "build/repo/argelbargel/gradle/plugins/gradle-jpi-plugin/$TRAVIS_TAG/gradle-jpi-plugin-$TRAVIS_TAG.pom.md5"
+    - "build/repo/argelbargel/gradle/plugins/gradle-jpi-plugin/$TRAVIS_TAG/gradle-jpi-plugin-$TRAVIS_TAG.pom.sha1"
+
+cache:
+  directories:
+  - $HOME/.gradle/caches
+  - $HOME/.gradle/native
+  - $HOME/.gradle/wrapper
