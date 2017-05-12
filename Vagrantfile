@@ -22,7 +22,7 @@ Vagrant.configure(2) do |config|
 
   config.vm.provider "virtualbox" do |vb|
     vb.cpus = 1
-    vb.memory = 512
+    vb.memory = 256
   end
 
   config.vm.provision 'update', type: 'shell', inline: 'apt-get update -yy', privileged: true
