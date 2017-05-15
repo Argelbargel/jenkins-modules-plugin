@@ -11,7 +11,6 @@ import hudson.model.DependencyGraph;
 import hudson.model.DependencyGraph.Dependency;
 import hudson.model.Item;
 import hudson.model.Result;
-import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -112,13 +111,18 @@ public final class ModuleTrigger extends Trigger<AbstractProject> implements Dep
         }
 
         @Override
-        public boolean shouldTriggerBuild(AbstractBuild upstream, TaskListener listener, List<Action> actions) {
-            return upstream.getParent() instanceof AbstractProject && shouldTriggerBuild(upstream.getProject(), upstream);
+        public boolean shouldTriggerBuild(AbstractBuild build, TaskListener listener, List<Action> actions) {
+            ModuleAction module = ModuleAction.get(getUpstreamProject());
+            return module.shouldTriggerDownstream(build.getResult()) && willNotBlock();
         }
 
-        private boolean shouldTriggerBuild(AbstractProject<?, ?> project, Run<?, ?> run) {
-            ModuleAction module = ModuleAction.get(project);
-            return module != null && module.shouldTriggerDownstream(run.getResult());
+        @SuppressWarnings("unchecked")
+        private boolean willNotBlock() {
+            List<AbstractProject> downstream = getUpstreamProject().getDownstreamProjects();
+            Set<AbstractProject> upstream = getDownstreamProject().getTransitiveUpstreamProjects();
+            upstream.remove(getUpstreamProject());
+            downstream.retainAll(upstream);
+            return downstream.isEmpty();
         }
     }
 

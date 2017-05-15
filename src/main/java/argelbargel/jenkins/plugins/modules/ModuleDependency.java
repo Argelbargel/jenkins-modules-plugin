@@ -18,6 +18,7 @@ import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -38,7 +39,7 @@ public final class ModuleDependency extends AbstractDescribableImpl<ModuleDepend
     }
 
     static Set<String> unwrap(List<ModuleDependency> dependencies) {
-        Set<String> names = new HashSet<>(dependencies.size());
+        Set<String> names = new LinkedHashSet<>(dependencies.size());
         for (ModuleDependency dependency : dependencies) {
             names.add(dependency.getName());
         }
@@ -61,6 +62,11 @@ public final class ModuleDependency extends AbstractDescribableImpl<ModuleDepend
     public AbstractProject getProject() {
         ModuleAction module = ModuleAction.get(getName());
         return module != null ? module.getProject() : null;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
     @Override
