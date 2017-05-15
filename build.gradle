@@ -102,3 +102,7 @@ jenkinsPlugin {
         }
     }
 }
+
+dependencies {
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins:buildgraph-view:1.6@jar'
+}

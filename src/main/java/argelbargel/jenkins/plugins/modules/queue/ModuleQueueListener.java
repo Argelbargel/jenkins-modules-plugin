@@ -13,7 +13,7 @@ import hudson.model.queue.QueueListener;
 public final class ModuleQueueListener extends QueueListener {
     @Override
     public void onLeaveBlocked(BlockedItem blocked) {
-        ModuleBlockedAction state = blocked.getAction(ModuleBlockedAction.class);
+        ModuleBlockedAction state = ModuleBlockedAction.get(blocked);
         if (state != null) {
             state.unblock();
         }

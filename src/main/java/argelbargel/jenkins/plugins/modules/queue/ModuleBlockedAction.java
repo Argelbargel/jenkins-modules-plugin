@@ -2,6 +2,7 @@ package argelbargel.jenkins.plugins.modules.queue;
 
 
 import com.google.common.base.Predicate;
+import hudson.model.Actionable;
 import hudson.model.InvisibleAction;
 import hudson.model.Queue;
 import hudson.model.Queue.Item;
@@ -13,6 +14,10 @@ import java.util.Stack;
 
 
 public final class ModuleBlockedAction extends InvisibleAction {
+    public static ModuleBlockedAction get(Actionable actionable) {
+        return actionable.getAction(ModuleBlockedAction.class);
+    }
+
     static void block(Item item, Item reason) {
         block(item, reason.getId(), reason.task.getFullDisplayName());
     }
@@ -71,6 +76,20 @@ public final class ModuleBlockedAction extends InvisibleAction {
     private void block(long id, String name) {
         unblock();
         blockers.push(new Blocker(id, name));
+    }
+
+    public boolean hasBeenBlockedBy(Run<?, ?> run) {
+        return hasBeenBlockedBy(run.getQueueId());
+    }
+
+    private boolean hasBeenBlockedBy(long id) {
+        for (Blocker blocker : blockers) {
+            if (blocker.id() == id) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @SuppressWarnings("unused") // used by summary.jelly
