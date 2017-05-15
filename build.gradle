@@ -11,12 +11,32 @@ buildscript {
 }
 
 apply plugin: 'org.jenkins-ci.jpi'
+apply plugin: 'maven-publish'
+
 
 archivesBaseName = 'modules'
-group = 'argelbargel.jenkins-plugins'
+group = 'argelbargel.jenkins.plugins'
 description = 'Jenkins plugin modelling modules'
 if (project.hasProperty('release') && project.getProperty('release') != '') {
     version = project.getProperty('release')
+}
+
+artifacts {
+    archives war
+}
+
+publishing {
+    repositories {
+        maven {
+            url "$buildDir/repo"
+        }
+    }
+
+    publications {
+        plugin(MavenPublication) {
+            artifact war
+        }
+    }
 }
 
 

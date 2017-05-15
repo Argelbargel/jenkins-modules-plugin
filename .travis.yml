@@ -19,13 +19,9 @@ deploy:
   on:
     tags: true
   file:
-    - "build/repo/argelbargel/gradle/plugins/gradle-jpi-plugin/$TRAVIS_TAG/gradle-jpi-plugin-$TRAVIS_TAG.jar"
-    - "build/repo/argelbargel/gradle/plugins/gradle-jpi-plugin/$TRAVIS_TAG/gradle-jpi-plugin-$TRAVIS_TAG.jar.md5"
-    - "build/repo/argelbargel/gradle/plugins/gradle-jpi-plugin/$TRAVIS_TAG/gradle-jpi-plugin-$TRAVIS_TAG.jar.sha1"
-    - "build/repo/argelbargel/gradle/plugins/gradle-jpi-plugin/$TRAVIS_TAG/gradle-jpi-plugin-$TRAVIS_TAG.pom"
-    - "build/repo/argelbargel/gradle/plugins/gradle-jpi-plugin/$TRAVIS_TAG/gradle-jpi-plugin-$TRAVIS_TAG.pom.md5"
-    - "build/repo/argelbargel/gradle/plugins/gradle-jpi-plugin/$TRAVIS_TAG/gradle-jpi-plugin-$TRAVIS_TAG.pom.sha1"
-
+    - "build/repo/argelbargel/jenkins/plugins/jenkins-modules-plugin/$TRAVIS_TAG/jenkins-modules-plugin-$TRAVIS_TAG.hpi"
+    - "build/repo/argelbargel/jenkins/plugins/jenkins-modules-plugin/$TRAVIS_TAG/jenkins-modules-plugin-$TRAVIS_TAG.hpi.md5"
+    - "build/repo/argelbargel/jenkins/plugins/jenkins-modules-plugin/$TRAVIS_TAG/jenkins-modules-plugin-$TRAVIS_TAG.hpi.sha1"
 cache:
   directories:
   - $HOME/.gradle/caches
