@@ -6,6 +6,7 @@ jdk:
 install: true
 before_install:
   - chmod +x travis/*.sh
+  - chmod +x gradlew
 script: ./travis/install.sh
 env:
   global:
