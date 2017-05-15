@@ -6,7 +6,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'argelbargel.gradle.plugins:gradle-jpi-plugin:0.24.0'
+        classpath 'argelbargel.gradle.plugins:gradle-jpi-plugin:+'
     }
 }
 
