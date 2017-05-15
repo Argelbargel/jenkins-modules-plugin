@@ -3,6 +3,6 @@
     <f:entry field="predicates">
         <f:hetero-list name="predicates" items="${instance.predicates}" hasHeader="true"
                        descriptors="${descriptor.all}"
-                       targetType="${argelbargel.jenkins.plugins.modules.predicates.QueuePredicate.class}"/>
+                       targetType="${argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate.class}"/>
     </f:entry>
 </j:jelly>

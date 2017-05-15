@@ -18,7 +18,8 @@ public class StartedByUserPredicate extends UserIdCausePredicate {
     private final String userId;
 
     @DataBoundConstructor
-    public StartedByUserPredicate(String userId) {
+    public StartedByUserPredicate(String userId, boolean checkUpstream) {
+        super(checkUpstream);
         this.userId = userId;
     }
 
@@ -33,12 +34,12 @@ public class StartedByUserPredicate extends UserIdCausePredicate {
 
 
     @Extension
-    @Symbol("startedByUser")
-    public static final class DescriptorImpl extends QueuePredicateDescriptor {
+    @Symbol("startedByUserPredicate")
+    public static final class DescriptorImpl extends CauseActionPredicateDescriptor {
         @Nonnull
         @Override
         public String getDisplayName() {
-            return "Module and Dependencies started by a specific user";
+            return "Started by a specific user";
         }
 
         @Restricted(NoExternalUse.class)

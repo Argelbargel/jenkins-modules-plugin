@@ -11,8 +11,8 @@ import javax.annotation.Nonnull;
 
 public class StartedBySameUserPredicate extends UserIdCausePredicate {
     @DataBoundConstructor
-    public StartedBySameUserPredicate() {
-        super();
+    public StartedBySameUserPredicate(boolean checkUpstream) {
+        super(checkUpstream);
     }
 
     @Override
@@ -22,12 +22,12 @@ public class StartedBySameUserPredicate extends UserIdCausePredicate {
 
 
     @Extension
-    @Symbol("startedBySameUser")
-    public static final class DescriptorImpl extends QueuePredicateDescriptor {
+    @Symbol("startedBySameUserPredicate")
+    public static final class DescriptorImpl extends CauseActionPredicateDescriptor {
         @Nonnull
         @Override
         public String getDisplayName() {
-            return "Module and Dependencies started by the same user";
+            return "Started by the same user";
         }
     }
 }

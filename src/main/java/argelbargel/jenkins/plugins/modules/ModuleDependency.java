@@ -16,14 +16,36 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static argelbargel.jenkins.plugins.modules.Registry.registry;
+import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildDownstream;
+import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildUpstream;
+import static argelbargel.jenkins.plugins.modules.ModuleUtils.findModule;
 
 
-public final class ModuleDependency extends AbstractDescribableImpl<ModuleDependency> implements Dependable, Serializable {
+public final class ModuleDependency extends AbstractDescribableImpl<ModuleDependency> implements Serializable {
+    static List<ModuleDependency> wrap(Set<String> names) {
+        List<ModuleDependency> dependencies = new ArrayList<>(names.size());
+        for (String name : names) {
+            dependencies.add(new ModuleDependency(name));
+        }
+
+        return dependencies;
+    }
+
+    static Set<String> unwrap(List<ModuleDependency> dependencies) {
+        Set<String> names = new HashSet<>(dependencies.size());
+        for (ModuleDependency dependency : dependencies) {
+            names.add(dependency.getName());
+        }
+
+        return names;
+    }
+
     private final String name;
 
     @DataBoundConstructor
@@ -32,14 +54,13 @@ public final class ModuleDependency extends AbstractDescribableImpl<ModuleDepend
         this.name = name;
     }
 
-    @Override
     public String getName() {
         return name;
     }
 
-    @Override
     public AbstractProject getProject() {
-        return registry().project(name);
+        ModuleAction module = ModuleAction.get(getName());
+        return module != null ? module.getProject() : null;
     }
 
     @Override
@@ -74,7 +95,7 @@ public final class ModuleDependency extends AbstractDescribableImpl<ModuleDepend
                 return FormValidation.error("module name must not be blank");
             }
 
-            if (registry().upstream(name).contains(registry().module(context))) {
+            if (buildUpstream(name).contains(findModule(context))) {
                 return FormValidation.error("circular dependency between this module and " + name);
             }
 
@@ -83,13 +104,13 @@ public final class ModuleDependency extends AbstractDescribableImpl<ModuleDepend
 
         @Restricted(NoExternalUse.class)
         public ComboBoxModel doFillNameItems(@AncestorInPath AbstractProject context) {
-            Set<String> names = new HashSet<>(registry().names());
+            Set<String> names = new HashSet<>(ModuleUtils.allNames());
 
-            String current = registry().module(context);
+            String current = findModule(context);
             if (current != null) {
                 names.remove(current);
-                names.removeAll(registry().downstream(current));
-                names.removeAll(registry().upstream(current));
+                names.removeAll(buildDownstream(current));
+                names.removeAll(buildUpstream(current));
             }
 
             return new ComboBoxModel(names);
