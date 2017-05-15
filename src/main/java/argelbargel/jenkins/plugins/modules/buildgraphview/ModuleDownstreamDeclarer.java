@@ -1,4 +1,4 @@
-package argelbargel.jenkins.plugins.modules.graph;
+package argelbargel.jenkins.plugins.modules.buildgraphview;
 
 
 import argelbargel.jenkins.plugins.modules.queue.ModuleBlockedAction;
