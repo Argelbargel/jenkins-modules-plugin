@@ -41,7 +41,7 @@ public final class ModuleQueueDispatcher extends QueueTaskDispatcher {
 
     private CauseOfBlockage canRun(Item item, Job<?, ?> job) {
         ModuleAction module = ModuleAction.get(job);
-        return module != null && ModuleDependencyGraph.get().hasDownstream(job) ? canRun(item, job, module) : null;
+        return module != null && ModuleDependencyGraph.get().hasUpstream(job) ? canRun(item, job, module) : null;
     }
 
     private CauseOfBlockage canRun(Item waiting, Job<?, ?> job, ModuleAction module) {

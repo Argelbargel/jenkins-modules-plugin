@@ -103,7 +103,7 @@ public final class ModuleDependencyGraph {
     }
 
     public List<Dependency> getDownstreamDependencies(Job<?, ?> job) {
-        if (forward.containsKey(job)) {
+        if (!forward.containsKey(job)) {
             return emptyList();
         }
 
