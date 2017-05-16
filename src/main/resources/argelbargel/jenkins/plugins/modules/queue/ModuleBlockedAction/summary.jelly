@@ -2,10 +2,28 @@
 <j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson">
     <j:if test="${not empty it.blockers}">
         <t:summary icon="orange-square.png">
-            <p>module was blocked by upstream for ${it.totalBlockDuration / 1000} seconds</p>
+            <p>Module was blocked by upstream for ${it.totalBlockDuration / 1000} seconds</p>
             <ul>
                 <j:forEach var="blocker" items="${it.blockers}">
-                    <li>blocked by ${blocker.name} for ${blocker.duration / 1000}s</li>
+                    <j:if test="${blocker.url!=null and app.getItemByFullName(blocker.name)!=null}">
+                        <li>
+                            <j:choose>
+                                <j:when test="${not empty blocker.build}">
+                                    <j:choose>
+                                        <j:when test="${app.getItemByFullName(blocker.name).getBuildByNumber(blocker.build)!=null}">
+                                            <j:out value="${%blocked_by_project_with_build(app.getItemByFullName(blocker.name).fullDisplayName,blocker.build,blocker.url,rootURL)}"/>
+                                        </j:when>
+                                        <j:otherwise>
+                                            <j:out value="${%blocked_by_project_with_deleted_build(app.getItemByFullName(blocker.name).fullDisplayName,blocker.build,blocker.url,rootURL)}"/>
+                                        </j:otherwise>
+                                    </j:choose>
+                                </j:when>
+                                <j:otherwise>
+                                    <j:out value="${%started_by_project_with(app.getItemByFullName(blocker.name).fullDisplayName,rootURL)}"/>
+                                </j:otherwise>
+                            </j:choose>
+                        </li>
+                    </j:if>
                 </j:forEach>
             </ul>
         </t:summary>

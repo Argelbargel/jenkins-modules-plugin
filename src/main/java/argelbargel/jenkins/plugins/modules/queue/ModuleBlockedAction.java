@@ -4,6 +4,7 @@ package argelbargel.jenkins.plugins.modules.queue;
 import com.google.common.base.Predicate;
 import hudson.model.Actionable;
 import hudson.model.InvisibleAction;
+import hudson.model.Job;
 import hudson.model.Queue;
 import hudson.model.Queue.Item;
 import hudson.model.Run;
@@ -19,14 +20,14 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     static void block(Item item, Item reason) {
-        block(item, reason.getId(), reason.task.getFullDisplayName());
+        block(item, reason.getId(), ((Job) reason.task).getFullName(), null, ((Job) reason.task).getParent().getUrl());
     }
 
     static void block(Item item, Run reason) {
-        block(item, reason.getQueueId(), reason.getFullDisplayName());
+        block(item, reason.getQueueId(), reason.getParent().getFullName(), reason.getNumber(), reason.getParent().getUrl());
     }
 
-    private static void block(Item item, long id, String name) {
+    private static void block(Item item, long id, String name, Integer build, String url) {
         ModuleBlockedAction action = item.getAction(ModuleBlockedAction.class);
         if (action == null) {
             action = new ModuleBlockedAction();
@@ -34,7 +35,7 @@ public final class ModuleBlockedAction extends InvisibleAction {
         }
 
         if (!action.isBlockedBy(id)) {
-            action.block(id, name);
+            action.block(id, name, build, url);
         }
     }
 
@@ -73,9 +74,9 @@ public final class ModuleBlockedAction extends InvisibleAction {
         blockedTotalDuration = 0;
     }
 
-    private void block(long id, String name) {
+    private void block(long id, String name, Integer build, String url) {
         unblock();
-        blockers.push(new Blocker(id, name));
+        blockers.push(new Blocker(id, name, build, url));
     }
 
     public boolean hasBeenBlockedBy(Run run) {
