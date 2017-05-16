@@ -1,0 +1,34 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson"
+         xmlns:local="local">
+    <d:taglib uri="local">
+        <d:tag name="relationship">
+            <j:if test="${lhs.fingerprintConfigured and rhs.fingerprintConfigured}">
+                <st:nbsp/>
+                <a href="${rootURL}/projectRelationship?lhs=${lhs.name}&amp;rhs=${rhs.name}">
+                    <l:icon class="icon-fingerprint icon-sm"/>
+                </a>
+            </j:if>
+        </d:tag>
+
+        <d:tag name="list"> <!-- @title, @items and @up -->
+            <j:if test="${!empty(items)}">
+                <h3>${title}</h3>
+                <ul style="list-style-type: none;">
+                    <j:forEach var="item" items="${items}">
+                        <j:if test="${h.hasPermission(item,item.READ)}">
+                            <li>
+                                <t:jobLink job="${item}"/>
+                                <local:relationship lhs="${up ? item : it}" rhs="${up ? it : item}"/>
+                            </li>
+                        </j:if>
+                    </j:forEach>
+                </ul>
+            </j:if>
+        </d:tag>
+    </d:taglib>
+    <h2>Module ${it.name}</h2>
+    <local:list title="${%Upstream}" items="${it.upstreamJobs}" up="true"/>
+    <local:list title="${%Downstream}" items="${it.downstreamJobs}" up="false"/>
+</j:jelly>

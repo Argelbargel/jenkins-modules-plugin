@@ -72,6 +72,14 @@ public final class ModuleAction extends InvisibleAction {
         return new AndActionsPredicate(predicates);
     }
 
+    public List<Job<?, ?>> getUpstreamJobs() {
+        return ModuleDependencyGraph.get().getUpstream(getJob());
+    }
+
+    public List<Job<?, ?>> getDownstreamJobs() {
+        return ModuleDependencyGraph.get().getDownstream(getJob());
+    }
+
     public long getDependencyWaitInterval() {
         return waitInterval;
     }
