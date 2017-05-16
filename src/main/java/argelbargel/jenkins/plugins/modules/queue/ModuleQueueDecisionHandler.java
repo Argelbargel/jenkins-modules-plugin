@@ -23,7 +23,7 @@ public final class ModuleQueueDecisionHandler extends QueueDecisionHandler {
     }
 
     private boolean shouldSchedule(Task task, ModuleAction module, List<Action> actions) {
-        return module != null && shouldSchedule(task, module.getPredicate(), actions);
+        return module == null || shouldSchedule(task, module.getPredicate(), actions);
     }
 
     private boolean shouldSchedule(Task task, ActionsPredicate predicate, List<Action> actions) {
