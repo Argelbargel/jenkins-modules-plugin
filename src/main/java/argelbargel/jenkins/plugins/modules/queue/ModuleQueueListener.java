@@ -2,9 +2,7 @@ package argelbargel.jenkins.plugins.modules.queue;
 
 
 import hudson.Extension;
-import hudson.model.AbstractProject;
 import hudson.model.Queue.BlockedItem;
-import hudson.model.Queue.Item;
 import hudson.model.Queue.LeftItem;
 import hudson.model.queue.QueueListener;
 
@@ -24,9 +22,5 @@ public final class ModuleQueueListener extends QueueListener {
         if (left.isCancelled()) {
             ModuleBlockedAction.cancelItemsBlockedBy(left);
         }
-    }
-
-    private boolean hasProjectTask(Item item) {
-        return item.task instanceof AbstractProject;
     }
 }

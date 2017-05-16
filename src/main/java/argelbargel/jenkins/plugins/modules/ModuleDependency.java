@@ -3,8 +3,8 @@ package argelbargel.jenkins.plugins.modules;
 
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
-import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
+import hudson.model.Job;
 import hudson.util.ComboBoxModel;
 import hudson.util.FormValidation;
 import org.apache.commons.lang.StringUtils;
@@ -59,9 +59,9 @@ public final class ModuleDependency extends AbstractDescribableImpl<ModuleDepend
         return name;
     }
 
-    public AbstractProject getProject() {
+    public Job<?, ?> getJob() {
         ModuleAction module = ModuleAction.get(getName());
-        return module != null ? module.getProject() : null;
+        return module != null ? module.getJob() : null;
     }
 
     @Override
@@ -96,7 +96,8 @@ public final class ModuleDependency extends AbstractDescribableImpl<ModuleDepend
         }
 
         @Restricted(NoExternalUse.class)
-        public FormValidation doCheckName(@QueryParameter String name, @AncestorInPath AbstractProject context) {
+        @SuppressWarnings("unused") // used by config.jelly
+        public FormValidation doCheckName(@QueryParameter String name, @AncestorInPath Job context) {
             if (StringUtils.isBlank(name)) {
                 return FormValidation.error("module name must not be blank");
             }
@@ -109,7 +110,8 @@ public final class ModuleDependency extends AbstractDescribableImpl<ModuleDepend
         }
 
         @Restricted(NoExternalUse.class)
-        public ComboBoxModel doFillNameItems(@AncestorInPath AbstractProject context) {
+        @SuppressWarnings("unused") // used by config.jelly
+        public ComboBoxModel doFillNameItems(@AncestorInPath Job context) {
             Set<String> names = new HashSet<>(ModuleUtils.allNames());
 
             String current = findModule(context);

@@ -3,11 +3,13 @@ package argelbargel.jenkins.plugins.modules.queue;
 
 import argelbargel.jenkins.plugins.modules.Messages;
 import argelbargel.jenkins.plugins.modules.ModuleAction;
+import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph;
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
 import com.google.common.base.Predicate;
 import hudson.Extension;
-import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.model.Queue.Item;
+import hudson.model.Queue.Task;
 import hudson.model.Run;
 import hudson.model.queue.CauseOfBlockage;
 import hudson.model.queue.QueueTaskDispatcher;
@@ -34,32 +36,32 @@ public final class ModuleQueueDispatcher extends QueueTaskDispatcher {
 
     @Override
     public CauseOfBlockage canRun(Item waiting) {
-        return waiting.task instanceof AbstractProject ? canRun(waiting, (AbstractProject) waiting.task) : super.canRun(waiting);
+        return waiting.task instanceof Job ? canRun(waiting, (Job) waiting.task) : super.canRun(waiting);
     }
 
-    private CauseOfBlockage canRun(Item item, AbstractProject<?, ?> project) {
-        ModuleAction module = ModuleAction.get(project);
-        return module != null && !project.getUpstreamProjects().isEmpty() ? canRun(item, project, module) : null;
+    private CauseOfBlockage canRun(Item item, Job<?, ?> job) {
+        ModuleAction module = ModuleAction.get(job);
+        return module != null && ModuleDependencyGraph.get().hasDownstream(job) ? canRun(item, job, module) : null;
     }
 
-    private CauseOfBlockage canRun(Item waiting, AbstractProject<?, ?> project, ModuleAction module) {
+    private CauseOfBlockage canRun(Item waiting, Job<?, ?> job, ModuleAction module) {
         long timeToWait = waitInterval(module) - waitedFor(waiting);
         if (timeToWait > 0) {
             return CauseOfBlockage.fromMessage(Messages._ModuleQueueDispatcher_waitForDependencies(Math.ceil(timeToWait / (float) MILLIS_PER_SEC)));
         }
 
-        return canRun(waiting, project.getTransitiveUpstreamProjects(), module.getPredicate());
+        return canRun(waiting, ModuleDependencyGraph.get().getTransitiveUpstream(job), module.getPredicate());
     }
 
-    private CauseOfBlockage canRun(Item waiting, Collection<AbstractProject> upstream, ActionsPredicate predicate) {
-        for (AbstractProject project : upstream) {
-            Item item = find(predicate, waiting, Jenkins.getInstance().getQueue().getItems(project));
+    private CauseOfBlockage canRun(Item waiting, Collection<Job<?, ?>> upstream, ActionsPredicate predicate) {
+        for (Job<?, ?> job : upstream) {
+            Item item = find(predicate, waiting, Jenkins.getInstance().getQueue().getItems((Task) job));
             if (item != null) {
                 ModuleBlockedAction.block(waiting, item);
                 return CauseOfBlockage.fromMessage(Messages._ModuleQueueDispatcher_blockedByUpstream(item.task.getDisplayName()));
             }
 
-            Run<?, ?> run = find(predicate, waiting, getBuildingRuns(project));
+            Run<?, ?> run = find(predicate, waiting, getBuildingRuns(job));
             if (run != null) {
                 ModuleBlockedAction.block(waiting, run);
                 return CauseOfBlockage.fromMessage(Messages._ModuleQueueDispatcher_blockedByUpstream(run.getFullDisplayName()));
@@ -70,8 +72,8 @@ public final class ModuleQueueDispatcher extends QueueTaskDispatcher {
     }
 
     @SuppressWarnings("unchecked")
-    private RunList<Run<?, ?>> getBuildingRuns(AbstractProject<?, ?> project) {
-        return ((RunList<Run<?, ?>>) project.getBuilds()).filter(BUILDING_RUNS_PREDICATE);
+    private RunList<Run<?, ?>> getBuildingRuns(Job<?, ?> job) {
+        return ((RunList<Run<?, ?>>) job.getBuilds()).filter(BUILDING_RUNS_PREDICATE);
     }
 
     private long waitInterval(ModuleAction module) {

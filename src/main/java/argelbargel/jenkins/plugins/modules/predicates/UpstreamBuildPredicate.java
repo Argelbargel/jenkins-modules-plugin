@@ -9,6 +9,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import javax.annotation.Nonnull;
 
 
+@SuppressWarnings("unused") // extension
 public final class UpstreamBuildPredicate extends CauseActionPredicate<UpstreamCause> {
     @DataBoundConstructor
     public UpstreamBuildPredicate() {

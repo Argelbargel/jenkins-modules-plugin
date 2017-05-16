@@ -105,4 +105,8 @@ jenkinsPlugin {
 
 dependencies {
     optionalJenkinsPlugins 'org.jenkins-ci.plugins:buildgraph-view:1.6@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-aggregator:2.5@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-job:2.11@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-api:2.13@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-cps:2.30@jar'
 }

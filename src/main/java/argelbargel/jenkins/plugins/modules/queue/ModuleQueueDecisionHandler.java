@@ -4,8 +4,8 @@ package argelbargel.jenkins.plugins.modules.queue;
 import argelbargel.jenkins.plugins.modules.ModuleAction;
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
 import hudson.Extension;
-import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.Actionable;
 import hudson.model.Queue.QueueDecisionHandler;
 import hudson.model.Queue.Task;
 import jenkins.model.Jenkins;
@@ -18,18 +18,16 @@ import static argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate.fi
 @Extension
 public final class ModuleQueueDecisionHandler extends QueueDecisionHandler {
     @Override
-    public boolean shouldSchedule(Task p, List<Action> actions) {
-        return p instanceof AbstractProject && shouldSchedule((AbstractProject) p, actions);
+    public boolean shouldSchedule(Task task, List<Action> actions) {
+        return !Actionable.class.isInstance(task) || shouldSchedule(task, ModuleAction.get((Actionable) task), actions);
     }
 
-    private boolean shouldSchedule(AbstractProject project, List<Action> actions) {
-        ModuleAction module = ModuleAction.get(project);
-        return module != null && shouldSchedule(project, module.getPredicate(), actions);
-
+    private boolean shouldSchedule(Task task, ModuleAction module, List<Action> actions) {
+        return module != null && shouldSchedule(task, module.getPredicate(), actions);
     }
 
-    private boolean shouldSchedule(AbstractProject project, ActionsPredicate predicate, List<Action> actions) {
+    private boolean shouldSchedule(Task task, ActionsPredicate predicate, List<Action> actions) {
         // only schedule new build when there's no matching build already queued
-        return find(predicate, actions, Jenkins.getInstance().getQueue().getItems(project)) == null;
+        return find(predicate, actions, Jenkins.getInstance().getQueue().getItems(task)) == null;
     }
 }

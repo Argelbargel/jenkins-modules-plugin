@@ -3,10 +3,12 @@ package argelbargel.jenkins.plugins.modules;
 
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
 import argelbargel.jenkins.plugins.modules.predicates.AndActionsPredicate;
-import hudson.model.AbstractProject;
+import hudson.model.Actionable;
 import hudson.model.InvisibleAction;
+import hudson.model.Job;
 import hudson.model.Result;
 import jenkins.model.Jenkins;
+import jenkins.model.ParameterizedJobMixIn;
 import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -21,8 +23,8 @@ import static java.util.Collections.emptySet;
 
 
 public final class ModuleAction extends InvisibleAction {
-    public static ModuleAction get(@Nonnull AbstractProject<?, ?> project) {
-        return project.getAction(ModuleAction.class);
+    public static ModuleAction get(@Nonnull Actionable actionable) {
+        return actionable.getAction(ModuleAction.class);
     }
 
     public static ModuleAction get(@Nonnull String name) {
@@ -37,8 +39,8 @@ public final class ModuleAction extends InvisibleAction {
 
     static Set<ModuleAction> all() {
         Set<ModuleAction> all = new HashSet<>();
-        for (AbstractProject<?, ?> project : Jenkins.getInstance().getAllItems(AbstractProject.class)) {
-            ModuleAction module = ModuleAction.get(project);
+        for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
+            ModuleAction module = ModuleAction.get(job);
             if (module != null) {
                 all.add(module);
             }
@@ -53,12 +55,17 @@ public final class ModuleAction extends InvisibleAction {
     private long waitInterval;
     private Result triggerResult;
 
+
     ModuleAction(String name) {
         this.name = name;
         this.dependencies = emptySet();
         this.predicates = emptyList();
         this.waitInterval = 0;
         this.triggerResult = Result.SUCCESS;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public ActionsPredicate getPredicate() {
@@ -77,9 +84,6 @@ public final class ModuleAction extends InvisibleAction {
         return result.isBetterOrEqualTo(triggerResult);
     }
 
-    String getName() {
-        return name;
-    }
 
     Set<String> getDependencies() {
         return dependencies;
@@ -114,14 +118,18 @@ public final class ModuleAction extends InvisibleAction {
         triggerResult = result;
     }
 
-    AbstractProject<?, ?> getProject() {
-        for (AbstractProject<?, ?> project : Jenkins.getInstance().getAllItems(AbstractProject.class)) {
-            if (equals(project.getAction(ModuleAction.class))) {
-                return project;
+    Job<?, ?> getJob() {
+        for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
+            if (equals(job.getAction(ModuleAction.class))) {
+                return job;
             }
         }
 
         return null;
+    }
+
+    ModuleTrigger getTrigger() {
+        return ParameterizedJobMixIn.getTrigger(getJob(), ModuleTrigger.class);
     }
 
     @Override

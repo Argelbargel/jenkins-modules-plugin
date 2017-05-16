@@ -14,6 +14,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import javax.annotation.Nonnull;
 
 
+@SuppressWarnings("unused") // extension
 public class StartedByUserPredicate extends UserIdCausePredicate {
     private final String userId;
 

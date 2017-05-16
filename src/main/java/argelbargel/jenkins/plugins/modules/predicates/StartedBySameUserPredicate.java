@@ -9,6 +9,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import javax.annotation.Nonnull;
 
 
+@SuppressWarnings("unused") // extension
 public class StartedBySameUserPredicate extends UserIdCausePredicate {
     @DataBoundConstructor
     public StartedBySameUserPredicate(boolean checkUpstream) {

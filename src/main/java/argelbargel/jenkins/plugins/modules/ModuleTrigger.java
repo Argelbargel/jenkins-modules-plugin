@@ -1,23 +1,22 @@
 package argelbargel.jenkins.plugins.modules;
 
 
+import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph.Dependency;
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate.ActionsPredicateDescriptor;
 import hudson.Extension;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.Action;
-import hudson.model.DependencyGraph;
-import hudson.model.DependencyGraph.Dependency;
 import hudson.model.Item;
+import hudson.model.Job;
 import hudson.model.Result;
+import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.ComboBoxModel;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import jenkins.model.DependencyDeclarer;
+import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.accmod.Restricted;
@@ -40,7 +39,7 @@ import static argelbargel.jenkins.plugins.modules.ModuleUtils.moduleExists;
 import static java.util.Collections.singleton;
 
 
-public final class ModuleTrigger extends Trigger<AbstractProject> implements DependencyDeclarer {
+public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     private final ModuleAction action;
 
     @DataBoundConstructor
@@ -53,6 +52,7 @@ public final class ModuleTrigger extends Trigger<AbstractProject> implements Dep
         return action.getName();
     }
 
+    @SuppressWarnings("unused") // used by config.jelly
     public Collection<ModuleDependency> getDependencies() {
         return ModuleDependency.wrap(action.getDependencies());
     }
@@ -62,6 +62,7 @@ public final class ModuleTrigger extends Trigger<AbstractProject> implements Dep
         action.setDependencies(ModuleDependency.unwrap(deps));
     }
 
+    @SuppressWarnings("unused") // used by config.jelly
     public int getDependencyWaitInterval() {
         return (int) (action.getDependencyWaitInterval() / 1000);
     }
@@ -71,6 +72,7 @@ public final class ModuleTrigger extends Trigger<AbstractProject> implements Dep
         action.setDependencyWaitInterval(interval * 1000);
     }
 
+    @SuppressWarnings("unused") // used by config.jelly
     public String getTriggerWhenResultBetterOrEqualTo() {
         return action.getTriggerResult().toString();
     }
@@ -90,14 +92,26 @@ public final class ModuleTrigger extends Trigger<AbstractProject> implements Dep
         action.setPredicates(predicates);
     }
 
-    @Override
-    public void buildDependencyGraph(AbstractProject owner, DependencyGraph graph) {
+
+    void buildDependencyGraph(Job<?, ?> owner, ModuleDependencyGraph graph) {
         for (String dependency : action.getDependencies()) {
             ModuleAction module = ModuleAction.get(dependency);
             if (module != null) {
-                graph.addDependency(new DependencyImpl(module.getProject(), owner));
+                graph.addDependency(new DependencyImpl(module.getJob(), owner));
             }
         }
+    }
+
+    @Override
+    public void start(ParameterizedJob project, boolean newInstance) {
+        super.start(project, newInstance);
+        ModuleDependencyGraph.rebuild();
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+        ModuleDependencyGraph.rebuild();
     }
 
     @Override
@@ -106,21 +120,21 @@ public final class ModuleTrigger extends Trigger<AbstractProject> implements Dep
     }
 
     private static class DependencyImpl extends Dependency {
-        DependencyImpl(AbstractProject upstream, AbstractProject downstream) {
+        DependencyImpl(Job<?, ?> upstream, Job<?, ?> downstream) {
             super(upstream, downstream);
         }
 
         @Override
-        public boolean shouldTriggerBuild(AbstractBuild build, TaskListener listener, List<Action> actions) {
-            ModuleAction module = ModuleAction.get(getUpstreamProject());
+        public boolean shouldTriggerBuild(Run<?, ?> build, TaskListener listener, List<Action> actions) {
+            ModuleAction module = ModuleAction.get(getUpstreamJob());
             return module.shouldTriggerDownstream(build.getResult()) && willNotBlock();
         }
 
         @SuppressWarnings("unchecked")
         private boolean willNotBlock() {
-            List<AbstractProject> downstream = getUpstreamProject().getDownstreamProjects();
-            Set<AbstractProject> upstream = getDownstreamProject().getTransitiveUpstreamProjects();
-            upstream.remove(getUpstreamProject());
+            List<Job<?, ?>> downstream = ModuleDependencyGraph.get().getDownstream(getUpstreamJob());
+            Set<Job<?, ?>> upstream = ModuleDependencyGraph.get().getTransitiveUpstream(getDownstreamJob());
+            upstream.remove(getUpstreamJob());
             downstream.retainAll(upstream);
             return downstream.isEmpty();
         }
@@ -138,15 +152,17 @@ public final class ModuleTrigger extends Trigger<AbstractProject> implements Dep
 
         @Override
         public boolean isApplicable(Item item) {
-            return item instanceof AbstractProject;
+            return item instanceof ParameterizedJob;
         }
 
+        @SuppressWarnings("unused") // used by config.jelly
         public List<ActionsPredicateDescriptor> getPredicateDescriptors() {
             return ActionsPredicateDescriptor.getAll();
         }
 
         @Restricted(NoExternalUse.class)
-        public FormValidation doCheckName(@QueryParameter String name, @AncestorInPath AbstractProject context) {
+        @SuppressWarnings("unused") // used by config.jelly
+        public FormValidation doCheckName(@QueryParameter String name, @AncestorInPath Job context) {
             if (StringUtils.isBlank(name)) {
                 return FormValidation.error("module name must not be blank");
             }
@@ -159,6 +175,7 @@ public final class ModuleTrigger extends Trigger<AbstractProject> implements Dep
         }
 
         @Restricted(NoExternalUse.class)
+        @SuppressWarnings("unused") // used by config.jelly
         public ComboBoxModel doFillNameItems(@QueryParameter String name) {
             Set<String> names = allNames();
             names.removeAll(buildUpstream(name));
@@ -168,6 +185,7 @@ public final class ModuleTrigger extends Trigger<AbstractProject> implements Dep
         }
 
         @Restricted(NoExternalUse.class)
+        @SuppressWarnings("unused") // used by config.jelly
         public ListBoxModel doFillTriggerWhenResultBetterOrEqualToItems() {
             ListBoxModel model = new ListBoxModel();
             model.add(Result.SUCCESS.toString());

@@ -3,29 +3,34 @@ package argelbargel.jenkins.plugins.modules.queue;
 
 import argelbargel.jenkins.plugins.modules.ModuleAction;
 import hudson.Extension;
-import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
+
+import javax.annotation.Nonnull;
 
 
 @Extension
 public final class ModuleRunListener extends RunListener<Run<?, ?>> {
     @Override
-    public void onFinalized(Run<?, ?> run) {
-        onFinalized(run, run.getParent());
+    public void onCompleted(Run<?, ?> run, @Nonnull TaskListener listener) {
+        onCompleted(run, run.getParent(), listener);
     }
 
-    private void onFinalized(Run<?, ?> run, Job<?, ?> job) {
-        if (job instanceof AbstractProject) {
-            onFinalized(run, (AbstractProject) job);
+    private void onCompleted(Run<?, ?> run, Job<?, ?> job, TaskListener listener) {
+        ModuleAction module = ModuleAction.get(job);
+        if (module != null) {
+            onCompleted(run, module, listener);
         }
     }
 
-    private void onFinalized(Run<?, ?> run, AbstractProject<?, ?> project) {
-        ModuleAction module = ModuleAction.get(project);
-        if (module != null && module.mustCancelDownstream(run.getResult())) {
+    private void onCompleted(Run<?, ?> run, ModuleAction module, TaskListener listener) {
+        if (module.mustCancelDownstream(run.getResult())) {
             ModuleBlockedAction.cancelItemsBlockedBy(run);
+        } else {
+            DownstreamTrigger.triggerDownstream(run, listener);
         }
+
     }
 }

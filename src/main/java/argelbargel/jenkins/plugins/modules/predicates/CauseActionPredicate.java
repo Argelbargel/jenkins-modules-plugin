@@ -20,7 +20,7 @@ public abstract class CauseActionPredicate<CAUSE extends Cause> extends SingleAc
         checkUpstream = upstream;
     }
 
-    @SuppressWarnings("WeakerAccess") // used in config.jelly
+    @SuppressWarnings("unused") // used in config.jelly
     public final boolean getCheckUpstream() {
         return checkUpstream;
     }

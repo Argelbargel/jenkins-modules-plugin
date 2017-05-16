@@ -29,6 +29,7 @@ public abstract class Actions {
 
     public abstract List<? extends Action> getAllActions();
 
+    @SuppressWarnings("unused") // part of public API
     public final <ACTION extends Action> List<ACTION> getActions(Class<ACTION> type) {
         return Util.filter(getAllActions(), type);
     }

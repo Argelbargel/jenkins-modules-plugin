@@ -78,7 +78,7 @@ public final class ModuleBlockedAction extends InvisibleAction {
         blockers.push(new Blocker(id, name));
     }
 
-    public boolean hasBeenBlockedBy(Run<?, ?> run) {
+    public boolean hasBeenBlockedBy(Run run) {
         return hasBeenBlockedBy(run.getQueueId());
     }
 

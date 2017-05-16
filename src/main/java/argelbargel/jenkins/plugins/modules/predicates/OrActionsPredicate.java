@@ -9,6 +9,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 
+@SuppressWarnings("unused") // extension
 public final class OrActionsPredicate extends CombinedActionsPredicate {
     @DataBoundConstructor
     public OrActionsPredicate(@Nonnull List<ActionsPredicate> predicates) {

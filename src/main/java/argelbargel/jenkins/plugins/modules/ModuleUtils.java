@@ -1,7 +1,7 @@
 package argelbargel.jenkins.plugins.modules;
 
 
-import hudson.model.AbstractProject;
+import hudson.model.Job;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,14 +28,14 @@ class ModuleUtils {
         return names;
     }
 
-    static String findModule(AbstractProject project) {
-        ModuleAction module = ModuleAction.get(project);
+    static String findModule(Job<?, ?> job) {
+        ModuleAction module = ModuleAction.get(job);
         return module != null ? module.getName() : null;
     }
 
-    static AbstractProject findProject(String name) {
+    static Job<?, ?> findProject(String name) {
         ModuleAction module = ModuleAction.get(name);
-        return module != null ? module.getProject() : null;
+        return module != null ? module.getJob() : null;
     }
 
     static boolean moduleExists(String name) {
