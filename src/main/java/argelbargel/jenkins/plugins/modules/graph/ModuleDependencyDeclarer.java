@@ -3,6 +3,7 @@ package argelbargel.jenkins.plugins.modules.graph;
 
 import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph;
 import argelbargel.jenkins.plugins.modules.queue.ModuleBlockedAction;
+import hudson.model.Cause;
 import hudson.model.Cause.UpstreamCause;
 import hudson.model.Job;
 import hudson.model.Run;
@@ -37,8 +38,12 @@ class ModuleDependencyDeclarer {
     }
 
     private static boolean wasTriggeredBy(Run<?, ?> downstream, Run run) {
-        UpstreamCause cause = downstream.getCause(UpstreamCause.class);
-        return cause != null && wasTriggeredBy(cause, run);
+        for (Cause cause : downstream.getCauses()) {
+            if (cause instanceof UpstreamCause && wasTriggeredBy((UpstreamCause) cause, run)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean wasTriggeredBy(UpstreamCause cause, Run run) {

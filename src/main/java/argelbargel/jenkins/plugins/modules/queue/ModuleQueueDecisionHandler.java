@@ -6,6 +6,8 @@ import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
 import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Actionable;
+import hudson.model.CauseAction;
+import hudson.model.Queue.Item;
 import hudson.model.Queue.QueueDecisionHandler;
 import hudson.model.Queue.Task;
 import jenkins.model.Jenkins;
@@ -28,6 +30,21 @@ public final class ModuleQueueDecisionHandler extends QueueDecisionHandler {
 
     private boolean shouldSchedule(Task task, ActionsPredicate predicate, List<Action> actions) {
         // only schedule new build when there's no matching build already queued
-        return find(predicate, actions, Jenkins.getInstance().getQueue().getItems(task)) == null;
+
+        Item queued = find(predicate, actions, Jenkins.getInstance().getQueue().getItems(task));
+        if (queued != null) {
+            foldActionsInto(queued, actions);
+            return false;
+        }
+
+        return true;
+    }
+
+    private void foldActionsInto(Item queued, List<Action> actions) {
+        for (Action a : actions) {
+            if (a instanceof CauseAction) {
+                ((CauseAction) a).foldIntoExisting(queued, null, actions);
+            }
+        }
     }
 }
