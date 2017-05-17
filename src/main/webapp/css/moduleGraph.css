@@ -1,0 +1,80 @@
+#flow, .flow {
+    margin: 0;
+    list-style-type: none;
+    white-space: nowrap;
+    display: block;
+}
+
+.column-wrapper {
+    margin: 20px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.build {
+    margin: 10px;
+    border: solid 1px black;
+    border-radius: 4px;
+    box-shadow: 2px 2px 5px black;
+    font-size: 1em;
+    min-width: 180px;
+    min-height: 120px;
+}
+
+.build .title {
+    border-radius: 4px 4px 0 0;
+    padding: 4px;
+    border-bottom: 1px solid black;
+    text-align: center;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.build .details {
+    min-height: 40px;
+    padding: 4px;
+}
+
+.build .details .status font {
+    /* override the default color (can be red on failure) */
+    color: black;
+}
+
+.connector {
+    margin: 10px;
+    height: 20px;
+}
+
+.connector .left {
+    margin-top: 10px;
+    float: left;
+}
+
+.connector .right {
+    margin-top: 10px;
+    float: right;
+}
+
+table.progress-bar {
+    border-collapse: collapse;
+    border: 1px solid #3465a4;
+    height: 6px;
+    width: 100px;
+    clear: none;
+}
+
+td.progress-bar-done {
+    background-color: #3465a4;
+}
+
+td.progress-bar-left {
+    background-color: #ffffff;
+}
+
+table.progress-bar.red {
+    border: 1px solid #cc0000;
+}
+
+table.progress-bar.red td.progress-bar-done {
+    background-color: #cc0000;
+}

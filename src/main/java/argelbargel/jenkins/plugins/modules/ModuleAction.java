@@ -72,10 +72,22 @@ public final class ModuleAction extends InvisibleAction {
         return new AndActionsPredicate(predicates);
     }
 
+    public Job<?, ?> getJob() {
+        for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
+            if (equals(job.getAction(ModuleAction.class))) {
+                return job;
+            }
+        }
+
+        return null;
+    }
+
+    @SuppressWarnings("unused") // used by jobMain.jelly
     public List<Job<?, ?>> getUpstreamJobs() {
         return ModuleDependencyGraph.get().getUpstream(getJob());
     }
 
+    @SuppressWarnings("unused") // used by jobMain.jelly
     public List<Job<?, ?>> getDownstreamJobs() {
         return ModuleDependencyGraph.get().getDownstream(getJob());
     }
@@ -124,16 +136,6 @@ public final class ModuleAction extends InvisibleAction {
 
     void setTriggerResult(Result result) {
         triggerResult = result;
-    }
-
-    Job<?, ?> getJob() {
-        for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
-            if (equals(job.getAction(ModuleAction.class))) {
-                return job;
-            }
-        }
-
-        return null;
     }
 
     ModuleTrigger getTrigger() {

@@ -80,12 +80,13 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     public boolean hasBeenBlockedBy(Run run) {
-        return hasBeenBlockedBy(run.getQueueId());
+        return hasBeenBlockedBy(run.getQueueId(), run.getNumber());
     }
 
-    private boolean hasBeenBlockedBy(long id) {
+    // use queue-id and build-number so we survive restarts
+    private boolean hasBeenBlockedBy(long id, int number) {
         for (Blocker blocker : blockers) {
-            if (blocker.id() == id) {
+            if (blocker.id() == id && blocker.getBuild() == number) {
                 return true;
             }
         }

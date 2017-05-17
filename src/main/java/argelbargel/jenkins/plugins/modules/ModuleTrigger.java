@@ -2,6 +2,7 @@ package argelbargel.jenkins.plugins.modules;
 
 
 import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph.Dependency;
+import argelbargel.jenkins.plugins.modules.graph.ModuleGraphJobAction;
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate.ActionsPredicateDescriptor;
 import hudson.Extension;
@@ -36,10 +37,12 @@ import static argelbargel.jenkins.plugins.modules.ModuleUtils.allNames;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildUpstream;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.findProject;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.moduleExists;
-import static java.util.Collections.singleton;
+import static java.util.Arrays.asList;
 
 
 public final class ModuleTrigger extends Trigger<ParameterizedJob> {
+    private static final String BUILDGRAPH_VIEW_PLUGIN_ID = "buildgraph-view";
+    
     private final ModuleAction action;
 
     @DataBoundConstructor
@@ -116,7 +119,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
 
     @Override
     public Collection<? extends Action> getProjectActions() {
-        return singleton(action);
+        return asList(action, new ModuleGraphJobAction(getName()));
     }
 
     private static class DependencyImpl extends Dependency {
