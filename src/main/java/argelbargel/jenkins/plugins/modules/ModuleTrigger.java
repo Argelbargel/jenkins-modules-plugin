@@ -65,6 +65,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         action.setDependencies(ModuleDependency.unwrap(deps));
     }
 
+
     @SuppressWarnings("unused") // used by config.jelly
     public int getDependencyWaitInterval() {
         return (int) (action.getDependencyWaitInterval() / 1000);
@@ -95,6 +96,15 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         action.setPredicates(predicates);
     }
 
+    @DataBoundSetter
+    public void setTriggerDownstreamWithCurrentParameters(boolean value) {
+        action.setTriggerDownstreamWithCurrentParameters(value);
+    }
+
+    @SuppressWarnings("unused") // used by config.jelly
+    public boolean getTriggerDownstreamWithCurrentParameters() {
+        return action.getTriggerDownstreamWithCurrentParameters();
+    }
 
     void buildDependencyGraph(Job<?, ?> owner, ModuleDependencyGraph graph) {
         for (String dependency : action.getDependencies()) {

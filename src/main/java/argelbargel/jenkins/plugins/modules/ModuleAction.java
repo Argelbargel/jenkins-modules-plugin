@@ -54,6 +54,7 @@ public final class ModuleAction extends InvisibleAction {
     private List<ActionsPredicate> predicates;
     private long waitInterval;
     private Result triggerResult;
+    private boolean triggerDownstreamWithCurrentParameters;
 
 
     ModuleAction(String name) {
@@ -62,6 +63,7 @@ public final class ModuleAction extends InvisibleAction {
         this.predicates = emptyList();
         this.waitInterval = 0;
         this.triggerResult = Result.SUCCESS;
+        this.triggerDownstreamWithCurrentParameters = true;
     }
 
     public String getName() {
@@ -100,10 +102,13 @@ public final class ModuleAction extends InvisibleAction {
         return result.isWorseThan(triggerResult);
     }
 
+    public boolean getTriggerDownstreamWithCurrentParameters() {
+        return triggerDownstreamWithCurrentParameters;
+    }
+
     boolean shouldTriggerDownstream(Result result) {
         return result.isBetterOrEqualTo(triggerResult);
     }
-
 
     Set<String> getDependencies() {
         return dependencies;
@@ -136,6 +141,10 @@ public final class ModuleAction extends InvisibleAction {
 
     void setTriggerResult(Result result) {
         triggerResult = result;
+    }
+
+    void setTriggerDownstreamWithCurrentParameters(boolean value) {
+        triggerDownstreamWithCurrentParameters = value;
     }
 
     ModuleTrigger getTrigger() {

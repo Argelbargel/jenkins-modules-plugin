@@ -8,7 +8,10 @@ import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
+import hudson.model.FileParameterValue;
 import hudson.model.Job;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.security.ACL;
@@ -23,6 +26,7 @@ import org.acegisecurity.context.SecurityContextHolder;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -33,24 +37,23 @@ import java.util.List;
  * @see hudson.tasks.BuildTrigger
  */
 class DownstreamTrigger {
-    static boolean triggerDownstream(Run<?, ?> run, TaskListener listener) {
-        return execute(run, run.getParent(), listener);
+    static boolean triggerDownstream(Run<?, ?> run, boolean withCurrentParameters, TaskListener listener) {
+        return execute(run, run.getParent(), withCurrentParameters, listener);
     }
 
-    private static boolean execute(Run<?, ?> run, Job<?, ?> job, TaskListener listener) {
+    private static boolean execute(Run<?, ?> run, Job<?, ?> job, boolean withCurrentParameters, TaskListener listener) {
         List<Dependency> downstream = ModuleDependencyGraph.get().getDownstreamDependencies(job);
         Authentication auth = checkAuth(downstream, listener.getLogger());
-        return downstream.isEmpty() || execute(run, downstream, auth, listener);
+        return downstream.isEmpty() || execute(run, withCurrentParameters, downstream, auth, listener);
     }
 
-    private static boolean execute(Run<?, ?> run, List<Dependency> downstream, Authentication auth, TaskListener listener) {
+    private static boolean execute(Run<?, ?> run, boolean withCurrentParameters, List<Dependency> downstream, Authentication auth, TaskListener listener) {
         for (Dependency dep : downstream) {
             List<Action> buildActions = new ArrayList<>();
             SecurityContext orig = ACL.impersonate(auth);
             try {
                 if (dep.shouldTriggerBuild(run, listener, buildActions)) {
-                    // Allow shouldTriggerBuild to return false first, in case it is skipping because of a lack of Item.READ/DISCOVER permission:
-                    buildActions.add(new CauseAction(new Cause.UpstreamCause(run)));
+                    buildActions.addAll(createBuildActions(run, withCurrentParameters));
                     execute(dep.getDownstreamJob(), buildActions.toArray(new Action[buildActions.size()]), listener.getLogger());
                 }
             } finally {
@@ -59,6 +62,26 @@ class DownstreamTrigger {
         }
 
         return true;
+    }
+
+    private static Collection<? extends Action> createBuildActions(Run<?, ?> run, boolean withCurrentParameters) {
+        Collection<Action> actions = new ArrayList<>();
+        actions.add(new CauseAction(new Cause.UpstreamCause(run)));
+
+        if (withCurrentParameters) {
+            ParametersAction action = run.getAction(ParametersAction.class);
+            if (action != null) {
+                List<ParameterValue> values = new ArrayList<>(action.getParameters().size());
+                for (ParameterValue value : action.getParameters())
+                    // FileParameterValue is currently not reusable, so omit these:
+                    if (!(value instanceof FileParameterValue)) {
+                        values.add(value);
+                    }
+                actions.add(new ParametersAction(values));
+            }
+        }
+
+        return actions;
     }
 
     private static void execute(Job<?, ?> job, Action[] actions, PrintStream logger) {
