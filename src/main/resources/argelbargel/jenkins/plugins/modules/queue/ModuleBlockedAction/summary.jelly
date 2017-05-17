@@ -12,14 +12,17 @@
                                     <j:choose>
                                         <j:when test="${app.getItemByFullName(blocker.name).getBuildByNumber(blocker.build)!=null}">
                                             <j:out value="${%blocked_by_project_with_build(app.getItemByFullName(blocker.name).fullDisplayName,blocker.build,blocker.url,rootURL)}"/>
+                                            for ${blocker.duration / 1000} seconds
                                         </j:when>
                                         <j:otherwise>
                                             <j:out value="${%blocked_by_project_with_deleted_build(app.getItemByFullName(blocker.name).fullDisplayName,blocker.build,blocker.url,rootURL)}"/>
+                                            for ${blocker.duration / 1000} seconds
                                         </j:otherwise>
                                     </j:choose>
                                 </j:when>
                                 <j:otherwise>
                                     <j:out value="${%started_by_project_with(app.getItemByFullName(blocker.name).fullDisplayName,rootURL)}"/>
+                                    for ${blocker.duration / 1000} seconds
                                 </j:otherwise>
                             </j:choose>
                         </li>
