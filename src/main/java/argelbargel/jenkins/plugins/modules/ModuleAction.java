@@ -40,7 +40,7 @@ public final class ModuleAction extends InvisibleAction {
     static Set<ModuleAction> all() {
         Set<ModuleAction> all = new HashSet<>();
         for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
-            ModuleAction module = ModuleAction.get(job);
+            ModuleAction module = job.getAction(ModuleAction.class);
             if (module != null) {
                 all.add(module);
             }
