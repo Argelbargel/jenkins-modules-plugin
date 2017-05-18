@@ -4,7 +4,7 @@
     <td data="${moduleName ?: '-'}">
         <j:choose>
             <j:when test="${not empty moduleName}">
-                <a class="model-link inside" href="${job.url}">${moduleName}</a>
+                <a class="model-link inside" href="/${job.url}">${moduleName}</a>
             </j:when>
             <j:otherwise>
                 ${%N/A}

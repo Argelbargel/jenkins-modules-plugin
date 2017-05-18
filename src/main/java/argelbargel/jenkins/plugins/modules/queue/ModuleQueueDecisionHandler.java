@@ -30,7 +30,6 @@ public final class ModuleQueueDecisionHandler extends QueueDecisionHandler {
 
     private boolean shouldSchedule(Task task, ActionsPredicate predicate, List<Action> actions) {
         // only schedule new build when there's no matching build already queued
-
         Item queued = find(predicate, actions, Jenkins.getInstance().getQueue().getItems(task));
         if (queued != null) {
             foldActionsInto(queued, actions);

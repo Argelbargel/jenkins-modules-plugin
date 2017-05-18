@@ -4,7 +4,6 @@ package argelbargel.jenkins.plugins.modules.predicates;
 import com.dabsquared.gitlabjenkins.cause.CauseData;
 import com.dabsquared.gitlabjenkins.cause.GitLabWebHookCause;
 import hudson.Extension;
-import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
@@ -27,7 +26,6 @@ public final class StartedBySameGitlabUserPredicate extends CauseActionPredicate
     }
 
     @Extension(optional = true)
-    @Symbol("sameGitlabUser")
     public static final class DescriptorImpl extends CauseActionPredicateDescriptor {
         @Nonnull
         @Override

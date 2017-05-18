@@ -18,7 +18,9 @@ import java.util.concurrent.ExecutionException;
 class ModuleDependencyDeclarer {
     static Set<Run> findRoots(Run run) {
         Set<Run> roots = new HashSet<>();
-        findRoots(roots, run);
+        if (run != null) {
+            findRoots(roots, run);
+        }
         return roots;
     }
 
