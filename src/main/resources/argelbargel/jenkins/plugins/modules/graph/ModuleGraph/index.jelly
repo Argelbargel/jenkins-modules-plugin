@@ -8,7 +8,7 @@
             <script type="text/javascript"
                     src="${resURL}/plugin/modules-plugin/scripts/jquery.jsPlumb-1.3.16-all-min.js"/>
             <script type="text/javascript" src='${resURL}/plugin/modules-plugin/scripts/angularjs.js'/>
-            <link rel="stylesheet" type="text/css" href="${resUrl}/plugin/modules-plugin/css/moduleGraph.css"/>
+            <link rel="stylesheet" type="text/css" href="${resURL}/plugin/modules-plugin/css/moduleGraph.css"/>
 
             <script>jQuery.noConflict();</script>
 
