@@ -94,6 +94,10 @@ public final class ModuleBlockedAction extends InvisibleAction {
         return false;
     }
 
+    public boolean isBlocked() {
+        return !blockers.isEmpty() && blockers.peek().isBlocked();
+    }
+
     @SuppressWarnings("unused") // used by summary.jelly
     public long getTotalBlockDuration() {
         return blockedTotalDuration;
@@ -105,20 +109,15 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     public Blocker getCurrentBlocker() {
-        if (blockers.isEmpty()) {
-            return null;
-        }
-
-        Blocker current = blockers.peek();
-        return (current.isBlocked()) ? current : null;
+        return isBlocked() ? blockers.peek() : null;
     }
 
     private boolean isBlockedBy(long queueId) {
-        return !blockers.isEmpty() && blockers.peek().id() == queueId;
+        return isBlocked() && blockers.peek().id() == queueId;
     }
 
     void unblock() {
-        if (!blockers.isEmpty()) {
+        if (isBlocked()) {
             blockedTotalDuration += blockers.peek().unblock();
         }
     }
