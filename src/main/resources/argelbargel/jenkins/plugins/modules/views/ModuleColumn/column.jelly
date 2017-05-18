@@ -4,7 +4,7 @@
     <td data="${moduleName ?: '-'}">
         <j:choose>
             <j:when test="${not empty moduleName}">
-                <a href="${it.getModuleGraphUrl(job)}">${moduleName}</a>
+                <a class="model-link inside" href="${job.shortUrl}">${moduleName}</a>
             </j:when>
             <j:otherwise>
                 ${%N/A}
