@@ -1,6 +1,7 @@
 package argelbargel.jenkins.plugins.modules.views;
 
 
+import argelbargel.jenkins.plugins.modules.Messages;
 import argelbargel.jenkins.plugins.modules.ModuleAction;
 import argelbargel.jenkins.plugins.modules.graph.ModuleGraphJobAction;
 import hudson.Extension;
@@ -33,7 +34,7 @@ public final class ModuleColumn extends ListViewColumn {
     public static final class DescriptorImpl extends ListViewColumnDescriptor {
         @Override
         public String getDisplayName() {
-            return "Module";
+            return Messages.ModuleColumn_DisplayName();
         }
 
         @Override
