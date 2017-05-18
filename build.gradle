@@ -14,7 +14,7 @@ apply plugin: 'org.jenkins-ci.jpi'
 apply plugin: 'maven-publish'
 
 
-archivesBaseName = 'modules'
+archivesBaseName = 'modules-plugin'
 group = 'argelbargel.jenkins.plugins'
 description = 'Jenkins plugin modelling modules'
 if (project.hasProperty('release') && project.getProperty('release') != '') {
@@ -35,6 +35,7 @@ publishing {
     publications {
         plugin(MavenPublication) {
             artifact war
+            artifactId archivesBaseName
         }
     }
 }
@@ -48,7 +49,7 @@ jenkinsPlugin {
     coreVersion = '2.7.3'
 
     // ID of the plugin, defaults to the project name without trailing '-plugin'
-    shortName = 'modules'
+    shortName = archivesBaseName
 
     // human-readable name of plugin
     displayName = 'Jenkins Modules-Plugin'
@@ -57,7 +58,7 @@ jenkinsPlugin {
     url = 'http://wiki.jenkins-ci.org/display/JENKINS/SomePluginPage'
 
     // plugin URL on GitHub, optional
-    gitHubUrl = 'https://github.com/jenkinsci/some-plugin'
+    gitHubUrl = 'https://github.com/Argelbargel/jenkins-modules-plugin'
 
     // use the plugin class loader before the core class loader, defaults to false
     pluginFirstClassLoader = true
