@@ -4,6 +4,7 @@ package argelbargel.jenkins.plugins.modules.views;
 import argelbargel.jenkins.plugins.modules.Messages;
 import argelbargel.jenkins.plugins.modules.ModuleAction;
 import argelbargel.jenkins.plugins.modules.queue.ModuleBlockedAction;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.Actionable;
 import hudson.model.Descriptor;
@@ -54,8 +55,8 @@ public final class ModuleViewFilter extends ViewJobFilter {
     @Override
     public List<TopLevelItem> filter(List<TopLevelItem> added, List<TopLevelItem> all, View filteringView) {
         for (TopLevelItem item : all) {
-            if (item instanceof Actionable) {
-                if (((Actionable) item).getAction(ModuleAction.class) == null || !accept(item)) {
+            if (item instanceof Actionable && ((Actionable) item).getAction(ModuleAction.class) != null) {
+                if (!accept(item)) {
                     added.remove(item);
                 } else if (!added.contains(item)) {
                     added.add(item);
@@ -66,8 +67,9 @@ public final class ModuleViewFilter extends ViewJobFilter {
         return added;
     }
 
+    @SuppressFBWarnings
     private boolean accept(TopLevelItem item) {
-        return ALL.equals(mode) || IGNORE_BLOCKED.equals(mode) | isBlocked(item);
+        return ALL.equals(mode) || (IGNORE_BLOCKED.equals(mode) || isBlocked(item));
     }
 
     private boolean isBlocked(TopLevelItem item) {
