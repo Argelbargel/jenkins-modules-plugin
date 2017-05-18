@@ -73,7 +73,7 @@ jenkinsPlugin {
     snapshotRepoUrl = 'https://repo.jenkins-ci.org/snapshots'
 
     // enable injection of additional tests for checking the syntax of Jelly and other things
-    disabledTestInjection = false
+    disabledTestInjection = true
 
     // the output directory for the localizer task relative to the project root, defaults to the value shown
     localizerOutputDir = "${project.buildDir}/generated-src/localizer"
@@ -107,10 +107,5 @@ jenkinsPlugin {
 dependencies {
     compile 'org.jgrapht:jgrapht-jdk1.5:0.7.3'
     compile 'com.google.code.gson:gson:2.7'
-/*
-    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-aggregator:2.5@jar'
-    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-job:2.11@jar'
-    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-api:2.13@jar'
-    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-cps:2.30@jar'
-*/
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins:gitlab-plugin:1.4.5@jar'
 }

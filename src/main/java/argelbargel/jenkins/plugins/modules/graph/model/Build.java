@@ -54,6 +54,7 @@ public class Build implements Serializable {
 
     private List<String> parameters = null;
 
+    @SuppressWarnings("deprecation")
     public Build(Run build, int buildIndex) {
         this.build = build;
         this.buildIndex = buildIndex;
