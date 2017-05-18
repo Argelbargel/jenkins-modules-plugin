@@ -27,10 +27,10 @@ public final class ModuleQueueDispatcher extends QueueTaskDispatcher {
     private static final int MINIMUM_WAIT_INTERVAL = 250;
     private static final int MILLIS_PER_SEC = 1000;
 
-    private static final Predicate<Run<?, ?>> BUILDING_RUNS_PREDICATE = new Predicate<Run<?, ?>>() {
+    private static final Predicate<Run<?, ?>> UNCOMPLETED_RUNS_PREDICATE = new Predicate<Run<?, ?>>() {
         @Override
         public boolean apply(@Nullable Run<?, ?> run) {
-            return run != null && run.isBuilding();
+            return run != null && run.isLogUpdated();
         }
     };
 
@@ -61,7 +61,7 @@ public final class ModuleQueueDispatcher extends QueueTaskDispatcher {
                 return CauseOfBlockage.fromMessage(Messages._ModuleQueueDispatcher_blockedByUpstream(item.task.getDisplayName()));
             }
 
-            Run<?, ?> run = find(predicate, waiting, getBuildingRuns(job));
+            Run<?, ?> run = find(predicate, waiting, getUncompletedRuns(job));
             if (run != null) {
                 ModuleBlockedAction.block(waiting, run);
                 return CauseOfBlockage.fromMessage(Messages._ModuleQueueDispatcher_blockedByUpstream(run.getFullDisplayName()));
@@ -72,8 +72,8 @@ public final class ModuleQueueDispatcher extends QueueTaskDispatcher {
     }
 
     @SuppressWarnings("unchecked")
-    private RunList<Run<?, ?>> getBuildingRuns(Job<?, ?> job) {
-        return ((RunList<Run<?, ?>>) job.getBuilds()).filter(BUILDING_RUNS_PREDICATE);
+    private RunList<Run<?, ?>> getUncompletedRuns(Job<?, ?> job) {
+        return ((RunList<Run<?, ?>>) job.getBuilds()).filter(UNCOMPLETED_RUNS_PREDICATE);
     }
 
     private long waitInterval(ModuleAction module) {
