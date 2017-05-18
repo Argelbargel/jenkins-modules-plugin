@@ -2,12 +2,14 @@ package argelbargel.jenkins.plugins.modules.views;
 
 
 import argelbargel.jenkins.plugins.modules.Messages;
-import argelbargel.jenkins.plugins.modules.ModuleAction;
-import argelbargel.jenkins.plugins.modules.graph.ModuleGraphJobAction;
+import argelbargel.jenkins.plugins.modules.queue.Blocker;
+import argelbargel.jenkins.plugins.modules.queue.ModuleBlockedAction;
 import hudson.Extension;
 import hudson.model.Job;
+import hudson.model.Queue.Item;
 import hudson.views.ListViewColumn;
 import hudson.views.ListViewColumnDescriptor;
+import jenkins.model.Jenkins;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -15,29 +17,30 @@ import javax.annotation.Nonnull;
 
 
 @SuppressWarnings("unused") // extension
-public final class ModuleColumn extends ListViewColumn {
+public final class BlockedColumn extends ListViewColumn {
     @DataBoundConstructor
-    public ModuleColumn() {
+    public BlockedColumn() {
         super();
     }
 
-    public String getModuleName(Job<?, ?> job) {
-        ModuleAction action = job.getAction(ModuleAction.class);
-        return (action != null) ? action.getModuleName() : null;
-    }
+    public Blocker getBlocker(Job<?, ?> job) {
+        for (Item item : Jenkins.getInstance().getQueue().getItems()) {
+            if (item.task == job) {
+                ModuleBlockedAction blocked = ModuleBlockedAction.get(item);
+                return (blocked != null) ? blocked.getCurrentBlocker() : null;
+            }
+        }
 
-    public String getModuleGraphUrl(Job<?, ?> job) {
-        ModuleGraphJobAction action = job.getAction(ModuleGraphJobAction.class);
-        return (action != null) ? action.getUrlName() : null;
+        return null;
     }
 
     @Extension(ordinal = DEFAULT_COLUMNS_ORDINAL_PROPERTIES_START - 3)
     @Symbol("module")
     public static final class DescriptorImpl extends ListViewColumnDescriptor {
-        @Override
         @Nonnull
+        @Override
         public String getDisplayName() {
-            return Messages.ModuleColumn_DisplayName();
+            return Messages.BlockedColumn_DisplayName();
         }
 
         @Override

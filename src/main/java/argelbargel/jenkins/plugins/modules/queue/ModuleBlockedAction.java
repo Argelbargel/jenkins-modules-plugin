@@ -104,6 +104,15 @@ public final class ModuleBlockedAction extends InvisibleAction {
         return blockers;
     }
 
+    public Blocker getCurrentBlocker() {
+        if (blockers.isEmpty()) {
+            return null;
+        }
+
+        Blocker current = blockers.peek();
+        return (current.isBlocked()) ? current : null;
+    }
+
     private boolean isBlockedBy(long queueId) {
         return !blockers.isEmpty() && blockers.peek().id() == queueId;
     }

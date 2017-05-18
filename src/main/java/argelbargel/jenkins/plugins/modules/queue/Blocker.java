@@ -12,7 +12,7 @@ public final class Blocker implements Serializable {
     private final Integer build;
     private final String url;
     private final long start;
-    private long end;
+    private Long end;
 
     Blocker(long id, String name, Integer build, String url) {
         this.id = id;
@@ -20,6 +20,7 @@ public final class Blocker implements Serializable {
         this.build = build;
         this.url = url;
         this.start = currentTimeMillis();
+        this.end = null;
     }
 
     public String getName() {
@@ -32,12 +33,16 @@ public final class Blocker implements Serializable {
 
     @SuppressWarnings("unused")// used by summary.jelly
     public String getUrl() {
-        return url;
+        return build != null ? url + build : url;
     }
 
     @SuppressWarnings("WeakerAccess") // used by summary.jelly
     public long getDuration() {
-        return end - start;
+        return (end != null) ? end - start : currentTimeMillis() - start;
+    }
+
+    boolean isBlocked() {
+        return end == null;
     }
 
     long id() {

@@ -1,0 +1,19 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core">
+    <j:set var="blocker" value="${it.getBlocker(job)}"/>
+    <td data="${blocker.name ?: '-'}">
+        <j:choose>
+            <j:when test="${not empty blocker}">
+                <a href="${blocker.url}">
+                    ${blocker.name}
+                    <j:if test="${not empty blocker.build}">
+                        #${blocker.build}
+                    </j:if>
+                </a>
+            </j:when>
+            <j:otherwise>
+                -
+            </j:otherwise>
+        </j:choose>
+    </td>
+</j:jelly>
