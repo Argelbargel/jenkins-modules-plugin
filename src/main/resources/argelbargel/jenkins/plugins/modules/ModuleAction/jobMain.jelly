@@ -28,7 +28,11 @@
             </j:if>
         </d:tag>
     </d:taglib>
-    <h2>Module ${it.name}</h2>
-    <local:list title="${%Upstream}" items="${it.upstreamJobs}" up="true"/>
-    <local:list title="${%Downstream}" items="${it.downstreamJobs}" up="false"/>
+    <j:set var="upstream" value="${it.upstreamJobs}"/>
+    <j:set var="downstream" value="${it.downstreamJobs}"/>
+    <j:if test="${not empty upstream and not empty downstream}">
+        <h2>Module ${it.name}</h2>
+        <local:list title="${%Upstream}" items="${upstream}" up="true"/>
+        <local:list title="${%Downstream}" items="${downstream}" up="false"/>
+    </j:if>
 </j:jelly>

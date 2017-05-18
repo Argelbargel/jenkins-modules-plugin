@@ -39,7 +39,7 @@ import static java.lang.System.currentTimeMillis;
 public class ModuleGraph implements Action {
     static final String URL_NAME = "moduleGraph";
     static final String DISPLAY_NAME = "Module Graph";
-    static final String ICON_FILE_NAME = "/plugin/modules/images/16x16/chain.png";
+    static final String ICON_FILE_NAME = "/plugin/modules-plugin/images/16x16/chain.png";
 
     private DirectedGraph<Build, Edge> graph;
 

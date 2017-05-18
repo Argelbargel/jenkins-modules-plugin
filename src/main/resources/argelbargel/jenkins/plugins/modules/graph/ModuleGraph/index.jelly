@@ -3,11 +3,12 @@
     <l:layout norefresh="true" title="ModuleGraph">
         <st:include page="sidepanel.jelly" it="${it.run}"/>
         <l:main-panel>
-            <script type='text/javascript' src='${resURL}/plugin/modules/scripts/jquery.min.js'/>
-            <script type='text/javascript' src='${resURL}/plugin/modules/scripts/jquery-ui.min.js'/>
-            <script type="text/javascript" src="${resURL}/plugin/modules/scripts/jquery.jsPlumb-1.3.16-all-min.js"/>
-            <script type="text/javascript" src='${resURL}/plugin/modules/scripts/angularjs.js'/>
-            <link rel="stylesheet" type="text/css" href="${resUrl}/plugin/modules/css/moduleGraph.css"/>
+            <script type='text/javascript' src='${resURL}/plugin/modules-plugin/scripts/jquery.min.js'/>
+            <script type='text/javascript' src='${resURL}/plugin/modules-plugin/scripts/jquery-ui.min.js'/>
+            <script type="text/javascript"
+                    src="${resURL}/plugin/modules-plugin/scripts/jquery.jsPlumb-1.3.16-all-min.js"/>
+            <script type="text/javascript" src='${resURL}/plugin/modules-plugin/scripts/angularjs.js'/>
+            <link rel="stylesheet" type="text/css" href="${resUrl}/plugin/modules-plugin/css/moduleGraph.css"/>
 
             <script>jQuery.noConflict();</script>
 
@@ -20,7 +21,7 @@
                 var ajaxPath = 'api/json';
                 ]]>
             </script>
-            <script type="text/javascript" src='${resURL}/plugin/modules/scripts/modulegraph-appctrl.js'/>
+            <script type="text/javascript" src='${resURL}/plugin/modules-plugin/scripts/modulegraph-appctrl.js'/>
         </l:main-panel>
     </l:layout>
 </j:jelly>

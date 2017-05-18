@@ -54,7 +54,7 @@ angular.module('moduleGraphApp', [])
         return {
             restrict: 'E',
             templateUrl: function (element, attrs) {
-                return attrs.jenkinsurl + "/plugin/modules/scripts/modulegraph-nodetemplate.html";
+                return attrs.jenkinsurl + "/plugin/modules-plugin/scripts/modulegraph-nodetemplate.html";
             },
             replace: true
         };
