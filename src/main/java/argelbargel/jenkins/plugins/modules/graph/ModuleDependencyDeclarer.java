@@ -9,11 +9,33 @@ import hudson.model.Job;
 import hudson.model.Run;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 
 class ModuleDependencyDeclarer {
+    static Set<Run> findRoots(Run run) {
+        Set<Run> roots = new HashSet<>();
+        findRoots(roots, run);
+        return roots;
+    }
+
+    private static void findRoots(Set<Run> roots, Run<?, ?> run) {
+        boolean isRoot = true;
+        for (Cause cause : run.getCauses()) {
+            if (cause instanceof UpstreamCause) {
+                isRoot = false;
+                findRoots(roots, ((UpstreamCause) cause).getUpstreamRun());
+            }
+        }
+
+        if (isRoot) {
+            roots.add(run);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     static List<Run> getDownstream(Run<?, ?> run) throws ExecutionException, InterruptedException {
         List<Run> runs = new ArrayList<>();

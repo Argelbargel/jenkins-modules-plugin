@@ -1,7 +1,7 @@
 <ul class="flow">
     <li class="column-wrapper" ng-repeat="columns in moduleGraphViewModel.nodes">
         <div ng-repeat="node in columns.nodes | orderBy:'row'">
-            <div class="build" id="{{node.nodeId}}" data-column="node.column" data-row="node.row">
+            <div class="build {{node.buildClass}}" id="{{node.nodeId}}" data-column="node.column" data-row="node.row">
                 <div class="title"
                      style="background-color:{{node.color}}; background-image:linear-gradient({{node.color}}, white);">
                     <a href="{{node.buildUrl}}">{{node.title}}</a>
@@ -12,20 +12,21 @@
                         <br/>
                         Status: {{node.status}}
                         <br/>
-                        <img title="Started" alt="Started" ng-src="{{node.clockpng}}"/>
+                        <img title="Started" alt="Started" ng-src="{{node.rootUrl}}/images/16x16/clock.png"/>
                         {{node.startTime}}
                         <br/>
-                        <img title="Duration" alt="Duration" ng-src="{{node.hourglasspng}}"/>
+                        <img title="Duration" alt="Duration" ng-src="{{node.rootUrl}}/images/16x16/hourglass.png"/>
                         {{node.duration}}
                         <br/>
                         <a href="{{node.buildUrl}}console">
                             <img title="view console output" alt="console"
-                                 ng-src="{{node.terminalpng}}"/>
+                                 ng-src="{{node.rootUrl}}/images/16x16/terminal.png"/>
                         </a>
                         <br/>
                     </div>
                     <div ng-show="node.started == true && node.running == true">
-                        <img title="Started" alt="Started" ng-src="{{node.clockpng}}"/>{{node.timeStampString}} ago<br/>
+                        <img title="Started" alt="Started" ng-src="{{node.rootUrl}}/images/16x16/clock.png"/>{{node.timeStampString}}
+                        ago<br/>
                         <br/>
                         <br/>
                         <table class="progress-bar">

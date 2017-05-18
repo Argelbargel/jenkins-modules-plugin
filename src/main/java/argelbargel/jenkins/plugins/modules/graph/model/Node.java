@@ -19,11 +19,10 @@ public class Node {
     private String startTime;
     private String duration;
     private String rootUrl;
-    private String clockpng;
-    private String hourglasspng;
-    private String terminalpng;
     private String timeStampString;
     private List<String> parameters;
+    private String buildClass = "";
+
 
     public String getNodeId() {
         return nodeId;
@@ -137,30 +136,6 @@ public class Node {
         this.rootUrl = rootUrl;
     }
 
-    public String getClockpng() {
-        return clockpng;
-    }
-
-    public void setClockpng(String clockpng) {
-        this.clockpng = clockpng;
-    }
-
-    public String getHourglasspng() {
-        return hourglasspng;
-    }
-
-    public void setHourglasspng(String hourglasspng) {
-        this.hourglasspng = hourglasspng;
-    }
-
-    public String getTerminalpng() {
-        return terminalpng;
-    }
-
-    public void setTerminalpng(String terminalpng) {
-        this.terminalpng = terminalpng;
-    }
-
     public String getTimeStampString() {
         return timeStampString;
     }
@@ -175,5 +150,13 @@ public class Node {
 
     public List<String> getParameters() {
         return parameters;
+    }
+
+    public void setBuildClass(String buildClass) {
+        this.buildClass = buildClass;
+    }
+
+    public String getBuildClass() {
+        return buildClass;
     }
 }

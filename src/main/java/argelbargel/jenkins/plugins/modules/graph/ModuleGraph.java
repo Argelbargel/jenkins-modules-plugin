@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static argelbargel.jenkins.plugins.modules.graph.ModuleDependencyDeclarer.findRoots;
 import static argelbargel.jenkins.plugins.modules.graph.ModuleDependencyDeclarer.getDownstream;
 import static java.lang.Math.round;
 import static java.lang.System.currentTimeMillis;
@@ -70,24 +71,25 @@ public class ModuleGraph implements Action {
         return run;
     }
 
-    private DirectedGraph<Build, Edge> getGraph() throws ExecutionException, InterruptedException, ClassNotFoundException, IOException {
+    private DirectedGraph<Build, Edge> computeGraph() throws ExecutionException, InterruptedException, ClassNotFoundException, IOException {
         if (graph == null) {
-            Build build = new Build(run, 0);
-            graph = new SimpleDirectedGraph<>(Edge.class);
-            graph.addVertex(build);
             index = 0;
-            computeGraphFrom(build);
-            setupDisplayGrid(build);
+            for (Run run : findRoots(run)) {
+                Build build = new Build(run, ++index);
+                graph = new SimpleDirectedGraph<>(Edge.class);
+                graph.addVertex(build);
+                computeGraphFrom(build);
+                setupDisplayGrid(build);
+            }
         }
         return graph;
     }
 
     private void computeGraphFrom(Build b) throws ExecutionException, InterruptedException, IOException {
-        Run run = b.getBuild();
-        List<Run> runs = getDownstream(run);
-        for (Run r : runs) {
-            if (r != null) {
-                Build next = getExecution(r);
+        List<Run> runs = getDownstream(b.getBuild());
+        for (Run run : runs) {
+            if (run != null) {
+                Build next = getExecution(run);
                 graph.addVertex(next);
                 graph.addEdge(b, next, new Edge(b, next));
                 computeGraphFrom(next);
@@ -155,7 +157,7 @@ public class ModuleGraph implements Action {
 
     @Exported
     public String getModuleGraph() throws InterruptedException, ExecutionException, ClassNotFoundException, IOException {
-        DirectedGraph<Build, Edge> iGraph = this.getGraph();
+        DirectedGraph<Build, Edge> iGraph = this.computeGraph();
         Graph graph = new Graph();
         ArrayList<Node> nodeArrayList = new ArrayList<>();
         ArrayList<Connector> buildGraphConnectorsModelArrayList = new ArrayList<>();
@@ -171,6 +173,7 @@ public class ModuleGraph implements Action {
             node.setDescription((item.getDescription() != null ? item.getDescription() : ""));
             node.setStarted(item.isStarted());
             node.setRunning(item.getBuild().isBuilding());
+            node.setBuildClass(item.getBuild() == run ? "currentBuild" : "");
             int progress = 0;
             node.setTimeStampString("");
             if (item.getBuild().isBuilding()) {
@@ -187,9 +190,6 @@ public class ModuleGraph implements Action {
             node.setStartTime(item.getStartTime());
             node.setDuration(item.getDurationString());
             node.setRootUrl(Jenkins.getInstance().getRootUrl());
-            node.setClockpng(Jenkins.getInstance().getRootUrl() + "/images/16x16/clock.png");
-            node.setHourglasspng(Jenkins.getInstance().getRootUrl() + "/images/16x16/hourglass.png");
-            node.setTerminalpng(Jenkins.getInstance().getRootUrl() + "/images/16x16/terminal.png");
 
             nodeArrayList.add(node);
         }
