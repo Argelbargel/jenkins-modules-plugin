@@ -4,8 +4,8 @@
         <f:combobox/>
         <j:if test="${not empty instance.name}">
             <j:choose>
-                <j:when test="${not empty instance.project}">
-                    (project ${instance.project.fullDisplayName})
+                <j:when test="${not empty instance.job}">
+                    (job <a href="/${instance.job.url}">${instance.job.fullDisplayName}</a>)
                 </j:when>
                 <j:otherwise>
                     (no project yet)
