@@ -52,7 +52,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     }
 
     public String getName() {
-        return action.getName();
+        return action.getModuleName();
     }
 
     @SuppressWarnings("unused") // used by config.jelly

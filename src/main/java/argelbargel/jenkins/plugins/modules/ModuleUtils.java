@@ -11,7 +11,7 @@ class ModuleUtils {
     static Set<String> allNames() {
         Set<String> names = new HashSet<>();
         for (ModuleAction module : ModuleAction.all()) {
-            names.add(module.getName());
+            names.add(module.getModuleName());
             names.addAll(module.getDependencies());
         }
 
@@ -22,7 +22,7 @@ class ModuleUtils {
         Set<ModuleAction> all = ModuleAction.all();
         Set<String> names = new HashSet<>(all.size());
         for (ModuleAction module : all) {
-            names.add(module.getName());
+            names.add(module.getModuleName());
         }
 
         return names;
@@ -30,7 +30,7 @@ class ModuleUtils {
 
     static String findModule(Job<?, ?> job) {
         ModuleAction module = ModuleAction.get(job);
-        return module != null ? module.getName() : null;
+        return module != null ? module.getModuleName() : null;
     }
 
     static Job<?, ?> findProject(String name) {
@@ -50,9 +50,9 @@ class ModuleUtils {
 
     private static void buildDownstream(Set<String> downstream, String name) {
         ModuleAction module = ModuleAction.get(name);
-        if (module != null && !downstream.contains(module.getName()) && module.getDependencies().contains(name)) {
-            downstream.add(module.getName());
-            buildDownstream(downstream, module.getName());
+        if (module != null && !downstream.contains(module.getModuleName()) && module.getDependencies().contains(name)) {
+            downstream.add(module.getModuleName());
+            buildDownstream(downstream, module.getModuleName());
         }
     }
 

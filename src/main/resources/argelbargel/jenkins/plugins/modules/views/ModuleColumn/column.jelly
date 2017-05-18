@@ -1,0 +1,14 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core">
+    <j:set var="moduleName" value="${it.getModuleName(job)}"/>
+    <td data="${moduleName ?: '-'}">
+        <j:choose>
+            <j:when test="${not empty moduleName}">
+                <a href="${it.getModuleGraphUrl(job)}">${moduleName}</a>
+            </j:when>
+            <j:otherwise>
+                ${%N/A}
+            </j:otherwise>
+        </j:choose>
+    </td>
+</j:jelly>

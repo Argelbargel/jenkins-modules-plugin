@@ -29,7 +29,7 @@ public final class ModuleAction extends InvisibleAction {
 
     public static ModuleAction get(@Nonnull String name) {
         for (ModuleAction module : all()) {
-            if (name.equals(module.getName())) {
+            if (name.equals(module.getModuleName())) {
                 return module;
             }
         }
@@ -66,7 +66,7 @@ public final class ModuleAction extends InvisibleAction {
         this.triggerDownstreamWithCurrentParameters = true;
     }
 
-    public String getName() {
+    public String getModuleName() {
         return name;
     }
 
