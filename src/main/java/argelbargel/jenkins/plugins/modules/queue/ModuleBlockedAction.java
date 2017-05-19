@@ -101,9 +101,7 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     private void block(long id, String name, Integer build, String url) {
-        if (!blockers.containsKey(id)) {
-            blockers.put(id, new Blocker(name, build, url));
-        }
+        blockers.put(id, new Blocker(name, build, url));
     }
 
     // use queue-id and build-number so we still show correct data after restarts
