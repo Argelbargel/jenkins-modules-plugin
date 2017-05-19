@@ -2,6 +2,7 @@ package argelbargel.jenkins.plugins.modules.queue;
 
 
 import com.google.common.base.Predicate;
+import hudson.Util;
 import hudson.model.Actionable;
 import hudson.model.InvisibleAction;
 import hudson.model.Job;
@@ -99,8 +100,8 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     @SuppressWarnings("unused") // used by summary.jelly
-    public long getTotalBlockDuration() {
-        return blockedTotalDuration;
+    public String getTotalBlockDuration() {
+        return Util.getTimeSpanString(blockedTotalDuration);
     }
 
     @SuppressWarnings("unused") // used by summary.jelly

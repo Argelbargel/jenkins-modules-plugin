@@ -1,6 +1,8 @@
 package argelbargel.jenkins.plugins.modules.queue;
 
 
+import hudson.Util;
+
 import java.io.Serializable;
 
 import static java.lang.System.currentTimeMillis;
@@ -37,8 +39,8 @@ public final class Blocker implements Serializable {
     }
 
     @SuppressWarnings("WeakerAccess") // used by summary.jelly
-    public long getDuration() {
-        return (end != null) ? end - start : currentTimeMillis() - start;
+    public String getDuration() {
+        return Util.getTimeSpanString(end != null ? end - start : currentTimeMillis() - start);
     }
 
     boolean isBlocked() {
@@ -51,6 +53,6 @@ public final class Blocker implements Serializable {
 
     long unblock() {
         end = currentTimeMillis();
-        return getDuration();
+        return end - start;
     }
 }
