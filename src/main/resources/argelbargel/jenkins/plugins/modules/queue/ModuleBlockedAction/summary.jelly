@@ -19,7 +19,7 @@
                                     </j:choose>
                                 </j:when>
                                 <j:otherwise>
-                                    <j:out value="${%blocked_by_project(app.getItemByFullName(blocker.name).fullDisplayName,rootURL)}"/>
+                                    <j:out value="${%blocked_by_project(app.getItemByFullName(blocker.name).fullDisplayName,blocker.url,rootURL)}"/>
                                 </j:otherwise>
                             </j:choose>
                             for ${blocker.duration}
