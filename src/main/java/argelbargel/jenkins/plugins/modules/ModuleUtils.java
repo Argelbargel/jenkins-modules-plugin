@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-class ModuleUtils {
+final class ModuleUtils {
     static Set<String> allNames() {
         Set<String> names = new HashSet<>();
         for (ModuleAction module : ModuleAction.all()) {

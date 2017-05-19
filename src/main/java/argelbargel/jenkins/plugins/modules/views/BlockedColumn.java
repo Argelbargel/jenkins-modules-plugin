@@ -14,6 +14,8 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
+import java.util.Collections;
 
 
 @SuppressWarnings("unused") // extension
@@ -23,15 +25,15 @@ public final class BlockedColumn extends ListViewColumn {
         super();
     }
 
-    public Blocker getBlocker(Job<?, ?> job) {
+    public Collection<Blocker> getBlockers(Job<?, ?> job) {
         for (Item item : Jenkins.getInstance().getQueue().getItems()) {
             if (item.task == job) {
                 ModuleBlockedAction blocked = ModuleBlockedAction.get(item);
-                return (blocked != null) ? blocked.getCurrentBlocker() : null;
+                return (blocked != null) ? blocked.getBlockers() : Collections.<Blocker>emptyList();
             }
         }
 
-        return null;
+        return Collections.emptyList();
     }
 
     @Extension(ordinal = DEFAULT_COLUMNS_ORDINAL_PROPERTIES_START - 3)

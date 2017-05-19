@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 
-class ModuleDependencyDeclarer {
+final class ModuleDependencyDeclarer {
     static Set<Run> findRoots(Run run) {
         Set<Run> roots = new HashSet<>();
         if (run != null) {
@@ -50,15 +50,15 @@ class ModuleDependencyDeclarer {
 
     private static void addTriggeredAndBlockedBuilds(List<Run> runs, List<Run<?, ?>> downstream, Run run) {
         for (Run<?, ?> d : downstream) {
-            if (wasTriggeredBy(d, run) || wasBlockedBy(d, run)) {
+            if (wasTriggeredBy(d, run) || hasRunFormerlyBlockedBy(d, run)) {
                 runs.add(d);
             }
         }
     }
 
-    private static boolean wasBlockedBy(Run<?, ?> downstream, Run run) {
+    private static boolean hasRunFormerlyBlockedBy(Run<?, ?> downstream, Run run) {
         ModuleBlockedAction blocked = ModuleBlockedAction.get(downstream);
-        return blocked != null && blocked.hasBeenBlockedBy(run);
+        return blocked != null && blocked.wasBlockedBy(run);
     }
 
     private static boolean wasTriggeredBy(Run<?, ?> downstream, Run run) {
@@ -73,4 +73,6 @@ class ModuleDependencyDeclarer {
     private static boolean wasTriggeredBy(UpstreamCause cause, Run run) {
         return cause.getUpstreamProject().equals(run.getParent().getFullName()) && cause.getUpstreamBuild() == run.getNumber();
     }
+
+    private ModuleDependencyDeclarer() { /* no instances required */ }
 }

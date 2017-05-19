@@ -13,12 +13,15 @@ import hudson.model.Queue.Task;
 import jenkins.model.Jenkins;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import static argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate.find;
 
 
 @Extension
 public final class ModuleQueueDecisionHandler extends QueueDecisionHandler {
+    private static final Logger LOGGER = Logger.getLogger(ModuleQueueDecisionHandler.class.getName());
+
     @Override
     public boolean shouldSchedule(Task task, List<Action> actions) {
         return !Actionable.class.isInstance(task) || shouldSchedule(task, ModuleAction.get((Actionable) task), actions);
@@ -32,6 +35,7 @@ public final class ModuleQueueDecisionHandler extends QueueDecisionHandler {
         // only schedule new build when there's no matching build already queued
         Item queued = find(predicate, actions, Jenkins.getInstance().getQueue().getItems(task));
         if (queued != null) {
+            LOGGER.info("will not schedule " + task.getFullDisplayName() + " as " + queued.task.getFullDisplayName() + " is already queued");
             foldActionsInto(queued, actions);
             return false;
         }

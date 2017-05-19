@@ -1,6 +1,7 @@
 package argelbargel.jenkins.plugins.modules.queue;
 
 
+import argelbargel.jenkins.plugins.modules.Messages;
 import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph;
 import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph.Dependency;
 import hudson.console.ModelHyperlinkNote;
@@ -29,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static argelbargel.jenkins.plugins.modules.queue.RunUtils.getUncompletedRuns;
+
 
 /**
  * adapted and refactored version of Jenkins BuildTrigger for AbstractProject
@@ -37,27 +40,42 @@ import java.util.List;
  * @see hudson.tasks.BuildTrigger
  */
 class DownstreamTrigger {
-    static boolean triggerDownstream(Run<?, ?> run, boolean withCurrentParameters, TaskListener listener) {
-        return execute(run, run.getParent(), withCurrentParameters, listener);
+    static void triggerDownstream(Run<?, ?> reason, boolean withCurrentParameters, TaskListener listener) {
+        execute(reason, reason.getParent(), withCurrentParameters, listener);
     }
 
-    private static boolean execute(Run<?, ?> run, Job<?, ?> job, boolean withCurrentParameters, TaskListener listener) {
+    private static void execute(Run<?, ?> reason, Job<?, ?> job, boolean withCurrentParameters, TaskListener listener) {
         List<Dependency> downstream = ModuleDependencyGraph.get().getDownstreamDependencies(job);
         Authentication auth = checkAuth(downstream, listener.getLogger());
-        return downstream.isEmpty() || execute(run, withCurrentParameters, downstream, auth, listener);
+        execute(reason, withCurrentParameters, downstream, auth, listener);
     }
 
-    private static boolean execute(Run<?, ?> run, boolean withCurrentParameters, List<Dependency> downstream, Authentication auth, TaskListener listener) {
+    private static void execute(Run<?, ?> reason, boolean withCurrentParameters, List<Dependency> downstream, Authentication auth, TaskListener listener) {
         for (Dependency dep : downstream) {
             List<Action> buildActions = new ArrayList<>();
             SecurityContext orig = ACL.impersonate(auth);
             try {
-                if (dep.shouldTriggerBuild(run, listener, buildActions)) {
-                    buildActions.addAll(createBuildActions(run, withCurrentParameters));
+                if (isNotAlreadyRunning(dep, reason, listener) && dep.shouldTriggerBuild(reason, listener, buildActions)) {
+                    buildActions.addAll(createBuildActions(reason, withCurrentParameters));
                     execute(dep.getDownstreamJob(), buildActions.toArray(new Action[buildActions.size()]), listener.getLogger());
                 }
             } finally {
                 SecurityContextHolder.setContext(orig);
+            }
+        }
+
+    }
+
+    private static boolean isNotAlreadyRunning(Dependency dep, Run<?, ?> reason, TaskListener listener) {
+        return isNotAlreadyRunning(dep.getDownstreamJob(), reason, listener.getLogger());
+    }
+
+    private static boolean isNotAlreadyRunning(Job<?, ?> job, Run<?, ?> reason, PrintStream logger) {
+        for (Run<?, ?> run : getUncompletedRuns(job)) {
+            ModuleBlockedAction blocked = ModuleBlockedAction.get(run);
+            if (blocked != null && blocked.wasBlockedBy(reason)) {
+                logger.println(Messages.DownstreamTrigger_AlreadyRunning(run.getDisplayName()));
+                return false;
             }
         }
 

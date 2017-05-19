@@ -1,15 +1,22 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core">
-    <j:set var="blocker" value="${it.getBlocker(job)}"/>
-    <td data="${blocker.name ?: '-'}">
+    <j:set var="blockers" value="${it.getBlockers(job)}"/>
+    <td>
         <j:choose>
-            <j:when test="${not empty blocker}">
-                <a href="${blocker.url}">
-                    ${blocker.name}
+            <j:when test="${not empty blockers}">
+                <j:forEach var="blocker" items="${blockers}" varStatus="status">
+                    <a class="model-link inside" href="${blocker.url}">
+                        ${blocker.name}
+                    </a>
                     <j:if test="${not empty blocker.build}">
-                        #${blocker.build}
+                        <a class="model-link inside" href="${blocker.url}${blocker.build}">
+                            #${blocker.build}
+                        </a>
                     </j:if>
-                </a>
+                    <j:if test="${not status.last}">,
+                        <br/>
+                    </j:if>
+                </j:forEach>
             </j:when>
             <j:otherwise>
                 -

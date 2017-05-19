@@ -2,7 +2,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson">
     <j:if test="${not empty it.blockers}">
         <t:summary icon="orange-square.png">
-            <p>Module was blocked by upstream for ${it.totalBlockDuration}</p>
+            <p>Module was blocked for ${it.blockDuration} by upstream-projects:</p>
             <ul>
                 <j:forEach var="blocker" items="${it.blockers}">
                     <j:if test="${blocker.url!=null and app.getItemByFullName(blocker.name)!=null}">
@@ -22,7 +22,6 @@
                                     ${%blocked_by_project(app.getItemByFullName(blocker.name).fullDisplayName,blocker.url,rootURL)}
                                 </j:otherwise>
                             </j:choose>
-                            for ${blocker.duration}
                         </li>
                     </j:if>
                 </j:forEach>

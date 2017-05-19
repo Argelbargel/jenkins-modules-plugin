@@ -11,8 +11,11 @@ import hudson.model.Queue.Item;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 
-import java.util.List;
-import java.util.Stack;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static java.lang.System.currentTimeMillis;
 
 
 public final class ModuleBlockedAction extends InvisibleAction {
@@ -35,9 +38,7 @@ public final class ModuleBlockedAction extends InvisibleAction {
             item.addAction(action);
         }
 
-        if (!action.isBlockedBy(id)) {
-            action.block(id, name, build, url);
-        }
+        action.block(id, name, build, url);
     }
 
     static void cancelItemsBlockedBy(Item reason) {
@@ -67,60 +68,51 @@ public final class ModuleBlockedAction extends InvisibleAction {
         }
     }
 
-    private final Stack<Blocker> blockers;
-    private long blockedTotalDuration;
+    private final Map<Long, Blocker> blockers;
+    private long blockStart;
+    private Long blockEnd;
 
     private ModuleBlockedAction() {
-        blockers = new Stack<>();
-        blockedTotalDuration = 0;
+        blockers = new LinkedHashMap<>();
+        blockStart = currentTimeMillis();
+        blockEnd = null;
     }
 
-    private void block(long id, String name, Integer build, String url) {
-        unblock();
-        blockers.push(new Blocker(id, name, build, url));
-    }
-
-    public boolean hasBeenBlockedBy(Run run) {
-        return hasBeenBlockedBy(run.getQueueId(), run.getNumber());
-    }
-
-    // use queue-id and build-number so we survive restarts
-    private boolean hasBeenBlockedBy(long id, int number) {
-        for (Blocker blocker : blockers) {
-            if (blocker.id() == id && blocker.getBuild() == number) {
-                return true;
-            }
-        }
-
-        return false;
+    public boolean wasBlockedBy(Run run) {
+        return wasBlockedBy(run.getQueueId(), run.getNumber());
     }
 
     public boolean isBlocked() {
-        return !blockers.isEmpty() && blockers.peek().isBlocked();
+        return blockEnd != null;
     }
 
     @SuppressWarnings("unused") // used by summary.jelly
-    public String getTotalBlockDuration() {
-        return Util.getTimeSpanString(blockedTotalDuration);
+    public String getBlockDuration() {
+        return Util.getTimeSpanString(blockEnd != null ? blockEnd - blockStart : currentTimeMillis() - blockStart);
     }
 
     @SuppressWarnings("unused") // used by summary.jelly
-    public List<Blocker> getBlockers() {
-        return blockers;
-    }
-
-    public Blocker getCurrentBlocker() {
-        return isBlocked() ? blockers.peek() : null;
-    }
-
-    private boolean isBlockedBy(long queueId) {
-        return isBlocked() && blockers.peek().id() == queueId;
+    public Collection<Blocker> getBlockers() {
+        return blockers.values();
     }
 
     void unblock() {
-        if (isBlocked()) {
-            blockedTotalDuration += blockers.peek().unblock();
+        blockEnd = currentTimeMillis();
+    }
+
+    private void block(long id, String name, Integer build, String url) {
+        if (!blockers.containsKey(id)) {
+            blockers.put(id, new Blocker(name, build, url));
         }
+    }
+
+    // use queue-id and build-number so we still show correct data after restarts
+    private boolean wasBlockedBy(long queueId, int build) {
+        return blockers.containsKey(queueId) && blockers.get(queueId).getBuild() == build;
+    }
+
+    private boolean isBlockedBy(long queueId) {
+        return blockEnd != null && blockers.containsKey(queueId);
     }
 
 

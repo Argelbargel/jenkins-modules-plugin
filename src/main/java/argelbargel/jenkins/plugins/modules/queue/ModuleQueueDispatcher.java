@@ -5,7 +5,6 @@ import argelbargel.jenkins.plugins.modules.Messages;
 import argelbargel.jenkins.plugins.modules.ModuleAction;
 import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph;
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
-import com.google.common.base.Predicate;
 import hudson.Extension;
 import hudson.model.Job;
 import hudson.model.Queue.Item;
@@ -13,26 +12,20 @@ import hudson.model.Queue.Task;
 import hudson.model.Run;
 import hudson.model.queue.CauseOfBlockage;
 import hudson.model.queue.QueueTaskDispatcher;
-import hudson.util.RunList;
 import jenkins.model.Jenkins;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 import static argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate.find;
+import static argelbargel.jenkins.plugins.modules.queue.RunUtils.getUncompletedRuns;
 
 
 @Extension
 public final class ModuleQueueDispatcher extends QueueTaskDispatcher {
     private static final int MINIMUM_WAIT_INTERVAL = 250;
     private static final int MILLIS_PER_SEC = 1000;
-
-    private static final Predicate<Run<?, ?>> UNCOMPLETED_RUNS_PREDICATE = new Predicate<Run<?, ?>>() {
-        @Override
-        public boolean apply(@Nullable Run<?, ?> run) {
-            return run != null && run.isLogUpdated();
-        }
-    };
+    private static final Logger LOGGER = Logger.getLogger(ModuleQueueDispatcher.class.getName());
 
     @Override
     public CauseOfBlockage canRun(Item waiting) {
@@ -47,6 +40,7 @@ public final class ModuleQueueDispatcher extends QueueTaskDispatcher {
     private CauseOfBlockage canRun(Item waiting, Job<?, ?> job, ModuleAction module) {
         long timeToWait = waitInterval(module) - waitedFor(waiting);
         if (timeToWait > 0) {
+            LOGGER.info(job.getFullDisplayName() + " must wait " + timeToWait + "ms for dependencies...");
             return CauseOfBlockage.fromMessage(Messages._ModuleQueueDispatcher_waitForDependencies(Math.ceil(timeToWait / (float) MILLIS_PER_SEC)));
         }
 
@@ -57,23 +51,20 @@ public final class ModuleQueueDispatcher extends QueueTaskDispatcher {
         for (Job<?, ?> job : upstream) {
             Item item = find(predicate, waiting, Jenkins.getInstance().getQueue().getItems((Task) job));
             if (item != null) {
+                LOGGER.info(job.getFullDisplayName() + " is blocked by " + item.task.getFullDisplayName());
                 ModuleBlockedAction.block(waiting, item);
-                return CauseOfBlockage.fromMessage(Messages._ModuleQueueDispatcher_blockedByUpstream(item.task.getDisplayName()));
+                return CauseOfBlockage.fromMessage(Messages._ModuleQueueDispatcher_blockedByUpstream(item.task.getFullDisplayName()));
             }
 
             Run<?, ?> run = find(predicate, waiting, getUncompletedRuns(job));
             if (run != null) {
+                LOGGER.info(job.getFullDisplayName() + " is blocked by " + run.getDisplayName());
                 ModuleBlockedAction.block(waiting, run);
                 return CauseOfBlockage.fromMessage(Messages._ModuleQueueDispatcher_blockedByUpstream(run.getFullDisplayName()));
             }
         }
 
         return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private RunList<Run<?, ?>> getUncompletedRuns(Job<?, ?> job) {
-        return ((RunList<Run<?, ?>>) job.getBuilds()).filter(UNCOMPLETED_RUNS_PREDICATE);
     }
 
     private long waitInterval(ModuleAction module) {
