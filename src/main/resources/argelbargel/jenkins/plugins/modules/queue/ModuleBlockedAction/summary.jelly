@@ -11,15 +11,15 @@
                                 <j:when test="${not empty blocker.build}">
                                     <j:choose>
                                         <j:when test="${app.getItemByFullName(blocker.name).getBuildByNumber(blocker.build)!=null}">
-                                            <j:out value="${%blocked_by_project_with_build(app.getItemByFullName(blocker.name).fullDisplayName,blocker.build,blocker.url,rootURL)}"/>
+                                            ${%blocked_by_project_with_build(app.getItemByFullName(blocker.name).fullDisplayName,blocker.build,blocker.url,rootURL)}
                                         </j:when>
                                         <j:otherwise>
-                                            <j:out value="${%blocked_by_project_with_deleted_build(app.getItemByFullName(blocker.name).fullDisplayName,blocker.build,blocker.url,rootURL)}"/>
+                                            ${%blocked_by_project_with_deleted_build(app.getItemByFullName(blocker.name).fullDisplayName,blocker.build,blocker.url,rootURL)}
                                         </j:otherwise>
                                     </j:choose>
                                 </j:when>
                                 <j:otherwise>
-                                    <j:out value="${%blocked_by_project(app.getItemByFullName(blocker.name).fullDisplayName,blocker.url,rootURL)}"/>
+                                    ${%blocked_by_project(app.getItemByFullName(blocker.name).fullDisplayName,blocker.url,rootURL)}
                                 </j:otherwise>
                             </j:choose>
                             for ${blocker.duration}
