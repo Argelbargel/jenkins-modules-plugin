@@ -8,7 +8,7 @@
                     (job <a href="/${instance.job.url}">${instance.job.fullDisplayName}</a>)
                 </j:when>
                 <j:otherwise>
-                    ${%(no project yet)}
+                    (no project yet)
                 </j:otherwise>
             </j:choose>
         </j:if>
