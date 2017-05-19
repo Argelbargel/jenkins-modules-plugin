@@ -107,6 +107,9 @@ jenkinsPlugin {
 dependencies {
     compile 'org.jgrapht:jgrapht-jdk1.5:0.7.3'
     compile 'com.google.code.gson:gson:2.7'
+    testCompile 'org.mockito:mockito-core:2.7.22'
+    testCompile 'org.powermock:powermock-module-junit4:1.7.0RC4'
+    testCompile 'org.powermock:powermock-api-mockito2:1.7.0RC4'
     optionalJenkinsPlugins 'org.jenkins-ci.plugins:gitlab-plugin:1.4.5@jar'
     optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-job:2.11@jar'
     optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-api:2.13@jar'

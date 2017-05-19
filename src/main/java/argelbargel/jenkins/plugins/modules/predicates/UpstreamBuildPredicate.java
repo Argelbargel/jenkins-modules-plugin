@@ -18,8 +18,7 @@ public final class UpstreamBuildPredicate extends CauseActionPredicate<UpstreamC
 
     @Override
     protected boolean test(UpstreamCause reasonCause, UpstreamCause subjectCause) {
-        return reasonCause.getUpstreamProject().equals(subjectCause.getUpstreamProject())
-                && reasonCause.getUpstreamBuild() == subjectCause.getUpstreamBuild();
+        return reasonCause.equals(subjectCause);
     }
 
     @Extension
