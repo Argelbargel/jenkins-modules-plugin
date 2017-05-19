@@ -6,7 +6,7 @@
             <j:when test="${not empty blockers}">
                 <j:forEach var="blocker" items="${blockers}" varStatus="status">
                     <a class="model-link inside" href="${blocker.url}">
-                        ${blocker.name}
+                        ${blocker.moduleName}
                     </a>
                     <j:if test="${not empty blocker.build}">
                         <a class="model-link inside" href="${blocker.url}${blocker.build}">

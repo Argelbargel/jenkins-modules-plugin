@@ -1,6 +1,7 @@
 package argelbargel.jenkins.plugins.modules.queue;
 
 
+import argelbargel.jenkins.plugins.modules.ModuleAction;
 import com.google.common.base.Predicate;
 import hudson.Util;
 import hudson.model.Actionable;
@@ -24,21 +25,21 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     static void block(Item item, Item reason) {
-        block(item, reason.getId(), ((Job) reason.task).getFullName(), null, ((Job) reason.task).getParent().getUrl());
+        block(item, reason.getId(), (Job) reason.task, null);
     }
 
     static void block(Item item, Run reason) {
-        block(item, reason.getQueueId(), reason.getParent().getFullName(), reason.getNumber(), reason.getParent().getUrl());
+        block(item, reason.getQueueId(), reason.getParent(), reason.getNumber());
     }
 
-    private static void block(Item item, long id, String name, Integer build, String url) {
+    private static void block(Item item, long id, Job<?, ?> task, Integer build) {
         ModuleBlockedAction action = item.getAction(ModuleBlockedAction.class);
         if (action == null) {
             action = new ModuleBlockedAction();
             item.addAction(action);
         }
 
-        action.block(id, name, build, url);
+        action.block(id, task, build);
     }
 
     static void cancelItemsBlockedBy(Item reason) {
@@ -83,7 +84,7 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     public boolean isBlocked() {
-        return blockEnd != null;
+        return blockEnd == null;
     }
 
     @SuppressWarnings("unused") // used by summary.jelly
@@ -100,8 +101,8 @@ public final class ModuleBlockedAction extends InvisibleAction {
         blockEnd = currentTimeMillis();
     }
 
-    private void block(long id, String name, Integer build, String url) {
-        blockers.put(id, new Blocker(name, build, url));
+    private void block(long queueId, Job task, Integer build) {
+        blockers.put(queueId, new Blocker(ModuleAction.get(task).getModuleName(), task.getFullName(), build, task.getUrl()));
     }
 
     // use queue-id and build-number so we still show correct data after restarts

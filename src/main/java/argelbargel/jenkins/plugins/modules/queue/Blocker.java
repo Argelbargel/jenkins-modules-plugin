@@ -5,18 +5,24 @@ import java.io.Serializable;
 
 
 public final class Blocker implements Serializable {
-    private final String name;
+    private final String moduleName;
+    private final String fullName;
     private final Integer build;
     private final String url;
 
-    Blocker(String name, Integer build, String url) {
-        this.name = name;
+    Blocker(String moduleName, String fullName, Integer build, String url) {
+        this.moduleName = moduleName;
+        this.fullName = fullName;
         this.build = build;
         this.url = url;
     }
 
-    public String getName() {
-        return name;
+    public String getModuleName() {
+        return moduleName;
+    }
+
+    public String getFullName() {
+        return fullName;
     }
 
     public Integer getBuild() {

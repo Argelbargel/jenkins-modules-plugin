@@ -2,24 +2,24 @@
 <j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson">
     <j:if test="${not empty it.blockers}">
         <t:summary icon="orange-square.png">
-            <p>Module was blocked for ${it.blockDuration} by upstream-projects:</p>
+            <p>${%blocked_by_upstream_for(it.blockDuration)}</p>
             <ul>
                 <j:forEach var="blocker" items="${it.blockers}">
-                    <j:if test="${blocker.url!=null and app.getItemByFullName(blocker.name)!=null}">
+                    <j:if test="${blocker.url!=null and app.getItemByFullName(blocker.fullName)!=null}">
                         <li>
                             <j:choose>
                                 <j:when test="${not empty blocker.build}">
                                     <j:choose>
-                                        <j:when test="${app.getItemByFullName(blocker.name).getBuildByNumber(blocker.build)!=null}">
-                                            ${%blocked_by_project_with_build(app.getItemByFullName(blocker.name).fullDisplayName,blocker.build,blocker.url,rootURL)}
+                                        <j:when test="${app.getItemByFullName(blocker.fullName).getBuildByNumber(blocker.build)!=null}">
+                                            ${%blocked_by_module_build(blocker.moduleName,blocker.build,blocker.url,rootURL)}
                                         </j:when>
                                         <j:otherwise>
-                                            ${%blocked_by_project_with_deleted_build(app.getItemByFullName(blocker.name).fullDisplayName,blocker.build,blocker.url,rootURL)}
+                                            ${%blocked_by_deleted_module_build(blocker.moduleName,blocker.build,blocker.url,rootURL)}
                                         </j:otherwise>
                                     </j:choose>
                                 </j:when>
                                 <j:otherwise>
-                                    ${%blocked_by_project(app.getItemByFullName(blocker.name).fullDisplayName,blocker.url,rootURL)}
+                                    ${%blocked_by_queued_module(blocker.moduleName,blocker.url,rootURL)}
                                 </j:otherwise>
                             </j:choose>
                         </li>
