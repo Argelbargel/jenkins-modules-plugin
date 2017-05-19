@@ -23,7 +23,7 @@ public final class StartedBySameGitlabUserPredicate extends CauseActionPredicate
     }
 
     private boolean test(CauseData reason, CauseData subject) {
-        return reason.getUserName().equals(subject.getUserName());
+        return reason.getTriggeredByUser().equals(subject.getTriggeredByUser());
     }
 
     @Extension(optional = true)
