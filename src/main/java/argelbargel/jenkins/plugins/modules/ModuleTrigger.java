@@ -41,8 +41,6 @@ import static java.util.Arrays.asList;
 
 
 public final class ModuleTrigger extends Trigger<ParameterizedJob> {
-    private static final String BUILDGRAPH_VIEW_PLUGIN_ID = "buildgraph-view";
-    
     private final ModuleAction action;
 
     @DataBoundConstructor
