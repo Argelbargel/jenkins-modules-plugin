@@ -102,6 +102,17 @@ public final class ModuleDependencyGraph {
         backward = new HashMap<>();
     }
 
+    public Set<Job<?, ?>> getRoots(Job<?, ?> job) {
+        Set<Job<?, ?>> roots = new HashSet<>();
+        for (Job<?, ?> upstream : getTransitiveUpstream(job)) {
+            if (!backward.containsKey(upstream)) {
+                roots.add(upstream);
+            }
+        }
+
+        return !roots.isEmpty() ? roots : Collections.<Job<?, ?>>singleton(job);
+    }
+
     public List<Dependency> getDownstreamDependencies(Job<?, ?> job) {
         if (!forward.containsKey(job)) {
             return emptyList();

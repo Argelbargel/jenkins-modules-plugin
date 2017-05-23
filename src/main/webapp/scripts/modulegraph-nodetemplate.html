@@ -1,13 +1,13 @@
 <ul class="flow">
     <li class="column-wrapper" ng-repeat="columns in moduleGraphViewModel.nodes">
         <div ng-repeat="node in columns.nodes | orderBy:'row'">
-            <div class="build {{node.buildClass}}" id="{{node.nodeId}}" data-column="node.column" data-row="node.row">
+            <div class="build {{node.buildClass}}" id="{{node.id}}" data-column="node.column" data-row="node.row">
                 <div class="title"
                      style="background-color:{{node.color}}; background-image:linear-gradient({{node.color}}, white);">
-                    <a href="{{node.buildUrl}}">{{node.title}}</a>
+                    <a href="{{node.url}}">{{node.title}}</a>
                 </div>
                 <div class="details">
-                    <div ng-show="node.started == true && node.running == false">
+                    <div ng-show="node.started == true && node.building == false">
                         <span ng-bind-html="node.description | rawHtml"></span>
                         <br/>
                         Status: {{node.status}}
@@ -18,14 +18,14 @@
                         <img title="Duration" alt="Duration" ng-src="{{node.rootUrl}}/images/16x16/hourglass.png"/>
                         {{node.duration}}
                         <br/>
-                        <a href="{{node.buildUrl}}console">
+                        <a href="{{node.url}}console">
                             <img title="view console output" alt="console"
                                  ng-src="{{node.rootUrl}}/images/16x16/terminal.png"/>
                         </a>
                         <br/>
                     </div>
-                    <div ng-show="node.started == true && node.running == true">
-                        <img title="Started" alt="Started" ng-src="{{node.rootUrl}}/images/16x16/clock.png"/>{{node.timeStampString}}
+                    <div ng-show="node.started == true && node.building == true">
+                        <img title="Started" alt="Started" ng-src="{{node.rootUrl}}/images/16x16/clock.png"/>{{node.timestamp}}
                         ago<br/>
                         <br/>
                         <br/>
@@ -38,7 +38,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div ng-show="node.started == false && node.running == false">
+                    <div ng-show="node.started == false && node.building == false">
                         Scheduled
                     </div>
                 </div>

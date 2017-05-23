@@ -1,162 +1,49 @@
 package argelbargel.jenkins.plugins.modules.graph.model;
 
 
+import java.io.Serializable;
 import java.util.List;
 
 
-public class Node {
-    private String nodeId;
-    private int row;
-    private int column;
-    private String title;
-    private String color;
-    private String buildUrl;
-    private String description;
-    private Boolean started;
-    private Boolean running;
-    private String status;
-    private int progress;
-    private String startTime;
-    private String duration;
-    private String rootUrl;
-    private String timeStampString;
-    private List<String> parameters;
-    private String buildClass = "";
-
-
-    public String getNodeId() {
-        return nodeId;
+public interface Node extends Serializable {
+    enum Type {
+        JOB,
+        BUILD
     }
 
-    public void setNodeId(String nodeId) {
-        this.nodeId = nodeId;
-    }
+    Type getType();
 
-    public int getRow() {
-        return row;
-    }
+    String getId();
 
-    public void setRow(int row) {
-        this.row = row;
-    }
+    int getRow();
 
-    public int getColumn() {
-        return column;
-    }
+    int getColumn();
 
-    public void setColumn(int column) {
-        this.column = column;
-    }
+    String getTitle();
 
-    public String getTitle() {
-        return title;
-    }
+    String getColor();
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    String getUrl();
 
-    public String getColor() {
-        return color;
-    }
+    String getDescription();
 
-    public void setColor(String color) {
-        this.color = color;
-    }
+    boolean isStarted();
 
-    public String getBuildUrl() {
-        return buildUrl;
-    }
+    boolean isBuilding();
 
-    public void setBuildUrl(String buildUrl) {
-        this.buildUrl = buildUrl;
-    }
+    String getStatus();
 
-    public String getDescription() {
-        return description;
-    }
+    int getProgress();
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    String getStartTime();
 
-    public Boolean getStarted() {
-        return started;
-    }
+    String getDuration();
 
-    public void setStarted(Boolean started) {
-        this.started = started;
-    }
+    String getRootUrl();
 
-    public Boolean getRunning() {
-        return running;
-    }
+    String getTimestamp();
 
-    public void setRunning(Boolean running) {
-        this.running = running;
-    }
+    List<String> getParameters();
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public int getProgress() {
-        return progress;
-    }
-
-    public void setProgress(int progress) {
-        this.progress = progress;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getDuration() {
-        return duration;
-    }
-
-    public void setDuration(String duration) {
-        this.duration = duration;
-    }
-
-    public String getRootUrl() {
-        return rootUrl;
-    }
-
-    public void setRootUrl(String rootUrl) {
-        this.rootUrl = rootUrl;
-    }
-
-    public String getTimeStampString() {
-        return timeStampString;
-    }
-
-    public void setTimeStampString(String timeStampString) {
-        this.timeStampString = timeStampString;
-    }
-
-    public void setParameters(List<String> parameters) {
-        this.parameters = parameters;
-    }
-
-    public List<String> getParameters() {
-        return parameters;
-    }
-
-    public void setBuildClass(String buildClass) {
-        this.buildClass = buildClass;
-    }
-
-    public String getBuildClass() {
-        return buildClass;
-    }
+    String getBuildClass();
 }

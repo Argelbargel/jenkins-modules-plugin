@@ -6,12 +6,11 @@ import argelbargel.jenkins.plugins.modules.graph.model.Column;
 import argelbargel.jenkins.plugins.modules.graph.model.Connector;
 import argelbargel.jenkins.plugins.modules.graph.model.Graph;
 import argelbargel.jenkins.plugins.modules.graph.model.Node;
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import hudson.model.Action;
 import hudson.model.Api;
 import hudson.model.Cause;
 import hudson.model.Run;
-import jenkins.model.Jenkins;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import org.kohsuke.stapler.export.Exported;
@@ -28,8 +27,6 @@ import java.util.concurrent.ExecutionException;
 
 import static argelbargel.jenkins.plugins.modules.graph.ModuleDependencyDeclarer.findRoots;
 import static argelbargel.jenkins.plugins.modules.graph.ModuleDependencyDeclarer.getDownstream;
-import static java.lang.Math.round;
-import static java.lang.System.currentTimeMillis;
 
 
 /**
@@ -86,7 +83,7 @@ public class ModuleGraph implements Action {
     }
 
     private void computeGraphFrom(Build b) throws ExecutionException, InterruptedException, IOException {
-        List<Run> runs = getDownstream(b.getBuild());
+        List<Run> runs = getDownstream(b.build());
         for (Run run : runs) {
             if (run != null) {
                 Build next = getExecution(run);
@@ -99,7 +96,7 @@ public class ModuleGraph implements Action {
 
     private Build getExecution(Run r) {
         for (Build build : graph.vertexSet()) {
-            if (build.getBuild().equals(r)) {
+            if (build.build().equals(r)) {
                 return build;
             }
         }
@@ -124,8 +121,8 @@ public class ModuleGraph implements Action {
             List<Build> path = allPaths.get(row);
             for (int column = 0; column < path.size(); column++) {
                 Build job = path.get(column);
-                job.setDisplayColumn(Math.max(job.getDisplayColumn(), column));
-                job.setDisplayRow(row + 1);
+                job.setColumn(Math.max(job.getColumn(), column));
+                job.setRow(row + 1);
             }
         }
     }
@@ -137,10 +134,10 @@ public class ModuleGraph implements Action {
      * @return a list of paths
      */
     private List<List<Build>> findAllPaths(Build start) {
-        List<List<Build>> allPaths = new LinkedList<List<Build>>();
+        List<List<Build>> allPaths = new LinkedList<>();
         if (graph.outDegreeOf(start) == 0) {
             // base case
-            List<Build> singlePath = new LinkedList<Build>();
+            List<Build> singlePath = new LinkedList<>();
             singlePath.add(start);
             allPaths.add(singlePath);
         } else {
@@ -162,44 +159,17 @@ public class ModuleGraph implements Action {
         ArrayList<Node> nodeArrayList = new ArrayList<>();
         ArrayList<Connector> buildGraphConnectorsModelArrayList = new ArrayList<>();
         for (Build item : iGraph.vertexSet()) {
-            Node node = new Node();
-            node.setNodeId(item.getId());
-            node.setBuildUrl(item.getBuildUrl());
-            node.setParameters(item.getParameters());
-            node.setRow(item.getDisplayRow());
-            node.setColumn(item.getDisplayColumn());
-            node.setColor(item.getIconColor().getHtmlBaseColor());
-            node.setTitle(item.getFullDisplayName());
-            node.setDescription((item.getDescription() != null ? item.getDescription() : ""));
-            node.setStarted(item.isStarted());
-            node.setRunning(item.getBuild().isBuilding());
-            node.setBuildClass(item.getBuild() == run ? "currentBuild" : "");
-            int progress = 0;
-            node.setTimeStampString("");
-            if (item.getBuild().isBuilding()) {
-                progress = (int) round(100.0d * (currentTimeMillis() - item.getBuild().getTimestamp().getTimeInMillis())
-                        / item.getBuild().getEstimatedDuration());
-                if (progress > 100) {
-                    progress = 99;
-                }
-                node.setTimeStampString(item.getBuild().getTimestampString());
-                graph.setBuilding(true);
-            }
-            node.setProgress(progress);
-            node.setStatus(item.getBuildSummaryStatusString());
-            node.setStartTime(item.getStartTime());
-            node.setDuration(item.getDurationString());
-            node.setRootUrl(Jenkins.getInstance().getRootUrl());
-
-            nodeArrayList.add(node);
+            graph.setBuilding(graph.getBuilding() | item.isBuilding());
+            item.setBuildClass(item.build() == run ? "currentBuild" : "");
+            nodeArrayList.add(item);
         }
 
 
-        ArrayList<Column> columnArrayList = new ArrayList<Column>();
+        ArrayList<Column> columnArrayList = new ArrayList<>();
         for (Node node : nodeArrayList) {
             if (node.getColumn() >= columnArrayList.size()) {
                 Column column = new Column();
-                ArrayList<Node> nodes = new ArrayList<Node>();
+                ArrayList<Node> nodes = new ArrayList<>();
                 nodes.add(node);
                 column.setNodes(nodes);
                 columnArrayList.add(column);
@@ -218,16 +188,16 @@ public class ModuleGraph implements Action {
         graph.setNodesSize(nodeArrayList.size());
         graph.setNodes(columnArrayList);
         graph.setConnectors(buildGraphConnectorsModelArrayList);
-        Gson gson = new Gson();
-        return gson.toJson(graph);
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(Node.class, new NodeSerializer());
+        return builder.create().toJson(graph);
     }
 
-    public static class Edge implements Serializable {
+    private static class Edge implements Serializable {
+        private final Build source;
+        private final Build target;
 
-        private Build source;
-        private Build target;
-
-        public Edge(Build source, Build target) {
+        Edge(Build source, Build target) {
             this.source = source;
             this.target = target;
         }
