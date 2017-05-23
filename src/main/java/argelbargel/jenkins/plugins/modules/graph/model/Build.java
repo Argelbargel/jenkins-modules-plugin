@@ -9,7 +9,6 @@ import java.text.DateFormat;
 import java.util.LinkedList;
 import java.util.List;
 
-import static argelbargel.jenkins.plugins.modules.graph.model.Node.Type.BUILD;
 import static java.lang.Math.round;
 import static java.lang.System.currentTimeMillis;
 
@@ -19,9 +18,9 @@ import static java.lang.System.currentTimeMillis;
  *
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
-public class Build extends AbstractNode<Run> {
-    public Build(Run build, int index) {
-        super(BUILD, build, index);
+public class Build extends Node<Run> {
+    public Build(GraphType type, Run build, int index) {
+        super(type, build, index);
     }
 
     public String getColor() {

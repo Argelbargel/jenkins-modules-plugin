@@ -1,51 +1,102 @@
 package argelbargel.jenkins.plugins.modules.graph.model;
 
 
+import jenkins.model.Jenkins;
+
 import java.io.Serializable;
 import java.util.List;
 
 
-public interface Node<PAYLOAD> extends Serializable {
-    enum Type {
-        JOB,
-        BUILD
+public abstract class Node<PAYLOAD> implements Serializable {
+    private final GraphType type;
+    private final PAYLOAD payload;
+    private final int index;
+    private int column;
+    private int row;
+    private String buildClass = "";
+
+    Node(GraphType type, PAYLOAD payload, int index) {
+        this.type = type;
+        this.payload = payload;
+        this.index = index;
     }
 
-    PAYLOAD payload();
+    public final PAYLOAD payload() {
+        return payload;
+    }
 
-    Type getType();
+    public final GraphType getType() {
+        return type;
+    }
 
-    String getId();
+    public final String getRootUrl() {
+        return Jenkins.getInstance().getRootUrl();
+    }
 
-    int getRow();
+    public final String getId() {
+        return type.name().toLowerCase() + "-" + index;
+    }
 
-    int getColumn();
+    public final int getColumn() {
+        return column;
+    }
 
-    String getTitle();
+    public final int getRow() {
+        return row;
+    }
 
-    String getColor();
+    @Override
+    public final String toString() {
+        return getId() + ": " + getTitle();
+    }
 
-    String getUrl();
+    public final String getBuildClass() {
+        return buildClass;
+    }
 
-    String getDescription();
+    public final void setBuildClass(String buildClass) {
+        this.buildClass = buildClass;
+    }
 
-    boolean isStarted();
+    public final void setColumn(int column) {
+        this.column = column;
+    }
 
-    boolean isBuilding();
+    public final void setRow(int row) {
+        this.row = row;
+    }
 
-    String getStatus();
+    @Override
+    public final boolean equals(Object obj) {
+        return obj instanceof Build && payload().equals(((Build) obj).payload());
+    }
 
-    int getProgress();
+    @Override
+    public final int hashCode() {
+        return payload().hashCode();
+    }
 
-    String getStartTime();
+    public abstract String getTitle();
 
-    String getDuration();
+    public abstract String getColor();
 
-    String getRootUrl();
+    public abstract String getUrl();
 
-    String getTimestamp();
+    public abstract String getDescription();
 
-    List<String> getParameters();
+    public abstract boolean isStarted();
 
-    String getBuildClass();
+    public abstract boolean isBuilding();
+
+    public abstract String getStatus();
+
+    public abstract int getProgress();
+
+    public abstract String getStartTime();
+
+    public abstract String getDuration();
+
+    public abstract String getTimestamp();
+
+    public abstract List<String> getParameters();
 }

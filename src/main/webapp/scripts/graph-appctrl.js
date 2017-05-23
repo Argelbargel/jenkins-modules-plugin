@@ -1,8 +1,8 @@
-angular.module('moduleGraphApp', [])
-    .controller('ModuleGraphAppCtrl', ['$scope', '$http', '$timeout', function ModuleGraphAppCtrl($scope, $http, $timeout) {
+angular.module('graphApp', [])
+    .controller('GraphAppCtrl', ['$scope', '$http', '$timeout', function GraphAppCtrl($scope, $http, $timeout) {
 
-        var moduleGraphDataModel = {nodes: [], connectors: []};
-        var moduleGraphPlumb = jsPlumb.getInstance({Container: "modulegraph"});
+        var graphDataModel = {nodes: [], connectors: []};
+        var graphPlumb = jsPlumb.getInstance({Container: "graph"});
         var nodesSize = 0;
         var isBuilding = false;
         $scope.callAtTimeout = function () {
@@ -14,16 +14,16 @@ angular.module('moduleGraphApp', [])
                         if (typeof data === 'string' || data instanceof String) {
                             data = JSON.parse(response.data);
                         }
-                        var moduleGraph = JSON.parse(data.moduleGraph);
-                        if (moduleGraph.isBuilding || nodesSize != moduleGraph.nodesSize || isBuilding != moduleGraph.isBuilding) {
-                            nodesSize = moduleGraph.nodesSize;
-                            isBuilding = moduleGraph.isBuilding;
-                            $scope.moduleGraphViewModel = moduleGraph;
+                    var graph = JSON.parse(data.graph);
+                    if (graph.isBuilding || nodesSize != graph.nodesSize || isBuilding != graph.isBuilding) {
+                        nodesSize = graph.nodesSize;
+                        isBuilding = graph.isBuilding;
+                        $scope.graphViewModel = graph;
                             $timeout(function () {
-                                moduleGraphPlumb.reset();
-                                for (i = 0; i < moduleGraph.connectors.length; i++) {
-                                    var connectorarrow = moduleGraph.connectors[i];
-                                    moduleGraphPlumb.connect({
+                                graphPlumb.reset();
+                                for (i = 0; i < graph.connectors.length; i++) {
+                                    var connectorarrow = graph.connectors[i];
+                                    graphPlumb.connect({
                                         source: connectorarrow.source,
                                         target: connectorarrow.target,
                                         overlays: [["Arrow", {
@@ -38,7 +38,7 @@ angular.module('moduleGraphApp', [])
                                         paintStyle: {strokeStyle: 'grey', lineWidth: '3'}
                                     });
                                 }
-                                moduleGraphPlumb.repaintEverything();
+                                graphPlumb.repaintEverything();
                             }, 200);
                         }
                     }
@@ -50,11 +50,11 @@ angular.module('moduleGraphApp', [])
         };
         $scope.callAtTimeout();
     }])
-    .directive('myModuleGraph', function () {
+    .directive('myGraph', function () {
         return {
             restrict: 'E',
             templateUrl: function (element, attrs) {
-                return attrs.jenkinsurl + "/plugin/modules-plugin/scripts/modulegraph-nodetemplate.html";
+                return attrs.jenkinsurl + "/plugin/modules-plugin/scripts/graph-nodetemplate.html";
             },
             replace: true
         };

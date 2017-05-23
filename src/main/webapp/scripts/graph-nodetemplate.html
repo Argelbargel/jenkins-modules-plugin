@@ -1,5 +1,5 @@
 <ul class="flow">
-    <li class="column-wrapper" ng-repeat="columns in moduleGraphViewModel.nodes">
+    <li class="column-wrapper" ng-repeat="columns in graphViewModel.nodes">
         <div ng-repeat="node in columns.nodes | orderBy:'row'">
             <div class="build {{node.buildClass}}" id="{{node.id}}" data-column="node.column" data-row="node.row">
                 <div class="title"

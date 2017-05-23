@@ -1,27 +1,27 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
     <l:layout norefresh="true" title="ModuleGraph">
-        <st:include page="sidepanel.jelly" it="${it.run}"/>
+        <st:include page="sidepanel.jelly" it="${it.payload}"/>
         <l:main-panel>
             <script type='text/javascript' src='${resURL}/plugin/modules-plugin/scripts/jquery.min.js'/>
             <script type='text/javascript' src='${resURL}/plugin/modules-plugin/scripts/jquery-ui.min.js'/>
             <script type="text/javascript"
                     src="${resURL}/plugin/modules-plugin/scripts/jquery.jsPlumb-1.3.16-all-min.js"/>
             <script type="text/javascript" src='${resURL}/plugin/modules-plugin/scripts/angularjs.js'/>
-            <link rel="stylesheet" type="text/css" href="${resURL}/plugin/modules-plugin/css/moduleGraph.css"/>
+            <link rel="stylesheet" type="text/css" href="${resURL}/plugin/modules-plugin/css/graph.css"/>
 
             <script>jQuery.noConflict();</script>
 
-            <div ng-app="moduleGraphApp" ng-controller="ModuleGraphAppCtrl" id="modulegraph">
-                <my-module-graph style="margin: 5px; width: 100%; height: 100%;" jenkinsurl="${resURL}">
-                </my-module-graph>
+            <div ng-app="graphApp" ng-controller="GraphAppCtrl" id="graph">
+                <my-graph style="margin: 5px; width: 100%; height: 100%;" jenkinsurl="${resURL}">
+                </my-graph>
             </div>
             <script type="text/javascript">
                 <![CDATA[
                 var ajaxPath = 'api/json';
                 ]]>
             </script>
-            <script type="text/javascript" src='${resURL}/plugin/modules-plugin/scripts/modulegraph-appctrl.js'/>
+            <script type="text/javascript" src='${resURL}/plugin/modules-plugin/scripts/graph-appctrl.js'/>
         </l:main-panel>
     </l:layout>
 </j:jelly>

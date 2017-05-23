@@ -5,11 +5,19 @@ import java.util.ArrayList;
 
 
 public class Graph {
-
+    private final GraphType type;
     private ArrayList<Column> nodes;
     private ArrayList<Connector> connectors;
     private Boolean isBuilding = false;
     private Integer nodesSize;
+
+    public Graph(GraphType type) {
+        this.type = type;
+    }
+
+    public GraphType getType() {
+        return type;
+    }
 
     public ArrayList<Column> getNodes() {
         return nodes;
