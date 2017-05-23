@@ -19,36 +19,33 @@ import static java.lang.System.currentTimeMillis;
  *
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
-public class Build extends AbstractNode {
-    private final Run build;
-
+public class Build extends AbstractNode<Run> {
     public Build(Run build, int index) {
-        super(BUILD, index);
-        this.build = build;
+        super(BUILD, build, index);
     }
 
     public String getColor() {
-        return build.getIconColor().getHtmlBaseColor();
+        return payload().getIconColor().getHtmlBaseColor();
     }
 
     public String getTitle() {
-        return build.getFullDisplayName();
+        return payload().getFullDisplayName();
     }
 
     public String getDescription() {
-        return build.getDescription();
+        return payload().getDescription();
     }
 
     public boolean isBuilding() {
-        return build.isBuilding();
+        return payload().isBuilding();
     }
 
     public String getDuration() {
-        return build.getDurationString();
+        return payload().getDurationString();
     }
 
     public String getTimestamp() {
-        return isBuilding() ? build().getTimestampString() : "";
+        return isBuilding() ? payload().getTimestampString() : "";
     }
 
     public int getProgress() {
@@ -56,17 +53,17 @@ public class Build extends AbstractNode {
             return 0;
         }
 
-        int progress = (int) round(100.0d * (currentTimeMillis() - build().getTimestamp().getTimeInMillis()) / build().getEstimatedDuration());
+        int progress = (int) round(100.0d * (currentTimeMillis() - payload().getTimestamp().getTimeInMillis()) / payload().getEstimatedDuration());
         return progress <= 100 ? progress : 99;
     }
 
     public String getStatus() {
-        return build.getBuildStatusSummary().message;
+        return payload().getBuildStatusSummary().message;
     }
 
     @SuppressWarnings("deprecation")
-    public String getUrl() {
-        return build.getAbsoluteUrl();
+    public String getUrl() { // TODO!
+        return payload().getAbsoluteUrl();
     }
 
     public String getStartTime() {
@@ -74,7 +71,7 @@ public class Build extends AbstractNode {
             return DateFormat.getDateTimeInstance(
                     DateFormat.SHORT,
                     DateFormat.SHORT)
-                    .format(build.getTime());
+                    .format(payload().getTime());
         }
 
         return "";
@@ -82,17 +79,13 @@ public class Build extends AbstractNode {
 
     @Override
     public boolean isStarted() {
-        return !build.hasntStartedYet();
-    }
-
-    public Run<?, ?> build() {
-        return build;
+        return !payload().hasntStartedYet();
     }
 
     @Override
     public List<String> getParameters() {
         List<String> parameters = new LinkedList<>();
-        ParametersAction action = build.getAction(ParametersAction.class);
+        ParametersAction action = payload().getAction(ParametersAction.class);
         if (action != null) {
             for (ParameterValue p : action.getParameters()) {
                 if (p != null) {
@@ -109,15 +102,5 @@ public class Build extends AbstractNode {
         }
 
         return parameters;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Build && build.equals(((Build) obj).build);
-    }
-
-    @Override
-    public int hashCode() {
-        return build.hashCode();
     }
 }

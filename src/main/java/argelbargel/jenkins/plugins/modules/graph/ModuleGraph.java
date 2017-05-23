@@ -38,10 +38,8 @@ public class ModuleGraph implements Action {
     static final String DISPLAY_NAME = "Module Graph";
     static final String ICON_FILE_NAME = "/plugin/modules-plugin/images/16x16/chain.png";
 
-    private DirectedGraph<Build, Edge> graph;
-
     private final Run run;
-
+    private DirectedGraph<Build, Edge> graph;
     private transient int index = 0;
 
     public ModuleGraph(Run<?, ?> run) {
@@ -83,7 +81,7 @@ public class ModuleGraph implements Action {
     }
 
     private void computeGraphFrom(Build b) throws ExecutionException, InterruptedException, IOException {
-        List<Run> runs = getDownstream(b.build());
+        List<Run> runs = getDownstream(b.payload());
         for (Run run : runs) {
             if (run != null) {
                 Build next = getExecution(run);
@@ -96,7 +94,7 @@ public class ModuleGraph implements Action {
 
     private Build getExecution(Run r) {
         for (Build build : graph.vertexSet()) {
-            if (build.build().equals(r)) {
+            if (build.payload().equals(r)) {
                 return build;
             }
         }
@@ -153,6 +151,7 @@ public class ModuleGraph implements Action {
     }
 
     @Exported
+    @SuppressWarnings("unused") // used by index.jelly
     public String getModuleGraph() throws InterruptedException, ExecutionException, ClassNotFoundException, IOException {
         DirectedGraph<Build, Edge> iGraph = this.computeGraph();
         Graph graph = new Graph();
@@ -160,7 +159,7 @@ public class ModuleGraph implements Action {
         ArrayList<Connector> buildGraphConnectorsModelArrayList = new ArrayList<>();
         for (Build item : iGraph.vertexSet()) {
             graph.setBuilding(graph.getBuilding() | item.isBuilding());
-            item.setBuildClass(item.build() == run ? "currentBuild" : "");
+            item.setBuildClass(item.payload() == run ? "currentBuild" : "");
             nodeArrayList.add(item);
         }
 

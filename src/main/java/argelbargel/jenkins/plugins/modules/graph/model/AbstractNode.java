@@ -4,16 +4,23 @@ package argelbargel.jenkins.plugins.modules.graph.model;
 import jenkins.model.Jenkins;
 
 
-abstract class AbstractNode implements Node {
+abstract class AbstractNode<PAYLOAD> implements Node<PAYLOAD> {
     private final Type type;
+    private final PAYLOAD payload;
     private final int index;
     private int column;
     private int row;
     private String buildClass = "";
 
-    AbstractNode(Type type, int index) {
+    AbstractNode(Type type, PAYLOAD payload, int index) {
         this.type = type;
+        this.payload = payload;
         this.index = index;
+    }
+
+    @Override
+    public final PAYLOAD payload() {
+        return payload;
     }
 
     @Override
@@ -61,5 +68,15 @@ abstract class AbstractNode implements Node {
 
     public final void setRow(int row) {
         this.row = row;
+    }
+
+    @Override
+    public final boolean equals(Object obj) {
+        return obj instanceof Build && payload().equals(((Build) obj).payload());
+    }
+
+    @Override
+    public final int hashCode() {
+        return payload().hashCode();
     }
 }

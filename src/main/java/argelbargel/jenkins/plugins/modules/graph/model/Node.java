@@ -5,11 +5,13 @@ import java.io.Serializable;
 import java.util.List;
 
 
-public interface Node extends Serializable {
+public interface Node<PAYLOAD> extends Serializable {
     enum Type {
         JOB,
         BUILD
     }
+
+    PAYLOAD payload();
 
     Type getType();
 
