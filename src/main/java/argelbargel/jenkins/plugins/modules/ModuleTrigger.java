@@ -2,7 +2,6 @@ package argelbargel.jenkins.plugins.modules;
 
 
 import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph.Dependency;
-import argelbargel.jenkins.plugins.modules.graph.ModuleGraphJobAction;
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate.ActionsPredicateDescriptor;
 import hudson.Extension;
@@ -37,7 +36,7 @@ import static argelbargel.jenkins.plugins.modules.ModuleUtils.allNames;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildUpstream;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.findProject;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.moduleExists;
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 
 public final class ModuleTrigger extends Trigger<ParameterizedJob> {
@@ -127,7 +126,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
 
     @Override
     public Collection<? extends Action> getProjectActions() {
-        return asList(action, new ModuleGraphJobAction(getName()));
+        return singletonList(action);
     }
 
     private static class DependencyImpl extends Dependency {
@@ -143,8 +142,8 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
 
         @SuppressWarnings("unchecked")
         private boolean willNotBlock() {
-            List<Job<?, ?>> downstream = ModuleDependencyGraph.get().getDownstream(getUpstreamJob());
-            Set<Job<?, ?>> upstream = ModuleDependencyGraph.get().getTransitiveUpstream(getDownstreamJob());
+            List<Job> downstream = ModuleDependencyGraph.get().getDownstream(getUpstreamJob());
+            Set<Job> upstream = ModuleDependencyGraph.get().getTransitiveUpstream(getDownstreamJob());
             upstream.remove(getUpstreamJob());
             downstream.retainAll(upstream);
             return downstream.isEmpty();

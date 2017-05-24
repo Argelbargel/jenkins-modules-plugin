@@ -23,12 +23,12 @@ import static argelbargel.jenkins.plugins.modules.graph.model.GraphType.BUILD;
 /**
  * Compute the graph of related builds, based on {@link Cause.UpstreamCause}.
  */
-public class ModuleGraph extends AbstractModuleGraph<Run> implements Action {
-    static final String URL_NAME = "moduleGraph";
-    static final String DISPLAY_NAME = "Module Graph";
-    static final String ICON_FILE_NAME = "/plugin/modules-plugin/images/16x16/chain.png";
+public class ModuleBuildGraph extends AbstractModuleGraph<Run> implements Action {
+    private static final String URL_NAME = "moduleBuildGraph";
+    private static final String DISPLAY_NAME = "Build Graph";
+    private static final String ICON_FILE_NAME = "/plugin/modules-plugin/images/24x24/icon-build-graph.png";
 
-    public ModuleGraph(Run run) {
+    ModuleBuildGraph(Run run) {
         super(BUILD, run);
     }
 
@@ -53,34 +53,33 @@ public class ModuleGraph extends AbstractModuleGraph<Run> implements Action {
     protected Set<Run> getRoots() {
         Run run = getPayload();
         Set<Run> roots = new HashSet<>();
-        if (run != null) {
-            findRoots(roots, run);
-        }
+        findRoots(roots, run);
         return roots;
     }
 
     private static void findRoots(Set<Run> roots, Run<?, ?> run) {
-        boolean isRoot = true;
-        for (Cause cause : run.getCauses()) {
-            if (cause instanceof Cause.UpstreamCause) {
-                isRoot = false;
-                findRoots(roots, ((Cause.UpstreamCause) cause).getUpstreamRun());
+        if (run != null) {
+            boolean isRoot = true;
+            for (Cause cause : run.getCauses()) {
+                if (cause instanceof Cause.UpstreamCause) {
+                    isRoot = false;
+                    findRoots(roots, ((Cause.UpstreamCause) cause).getUpstreamRun());
+                }
             }
-        }
 
-        if (isRoot) {
-            roots.add(run);
+            if (isRoot) {
+                roots.add(run);
+            }
         }
     }
 
 
     @SuppressWarnings("unchecked")
     @Override
-    protected List<Run> getDownstream(Node<Run> b) throws ExecutionException, InterruptedException {
-        Run<?, ?> run = b.payload();
+    protected List<Run> getDownstream(Run payload) throws ExecutionException, InterruptedException {
         List<Run> runs = new ArrayList<>();
-        for (Job downstream : ModuleDependencyGraph.get().getDownstream(run.getParent())) {
-            addTriggeredAndBlockedBuilds(runs, (List<Run<?, ?>>) downstream.getBuilds(), run);
+        for (Job downstream : ModuleDependencyGraph.get().getDownstream(payload.getParent())) {
+            addTriggeredAndBlockedBuilds(runs, (List<Run<?, ?>>) downstream.getBuilds(), payload);
         }
 
         return runs;

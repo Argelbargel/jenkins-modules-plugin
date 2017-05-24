@@ -26,6 +26,7 @@ import java.util.Stack;
 import java.util.TreeSet;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 
 
 /**
@@ -92,8 +93,8 @@ public final class ModuleDependencyGraph {
     }
 
 
-    private final Map<Job<?, ?>, Set<Dependency>> forward;
-    private final Map<Job<?, ?>, Set<Dependency>> backward;
+    private final Map<Job, Set<Dependency>> forward;
+    private final Map<Job, Set<Dependency>> backward;
     private Comparator<Job<?, ?>> topologicalOrder;
 
 
@@ -102,15 +103,15 @@ public final class ModuleDependencyGraph {
         backward = new HashMap<>();
     }
 
-    public Set<Job<?, ?>> getRoots(Job<?, ?> job) {
-        Set<Job<?, ?>> roots = new HashSet<>();
+    public Set<Job> getRoots(Job job) {
+        Set<Job> roots = new HashSet<>();
         for (Job<?, ?> upstream : getTransitiveUpstream(job)) {
             if (!backward.containsKey(upstream)) {
                 roots.add(upstream);
             }
         }
 
-        return !roots.isEmpty() ? roots : Collections.<Job<?, ?>>singleton(job);
+        return !roots.isEmpty() ? roots : singleton(job);
     }
 
     public List<Dependency> getDownstreamDependencies(Job<?, ?> job) {
@@ -135,7 +136,7 @@ public final class ModuleDependencyGraph {
      *
      * @return can be empty but never null.
      */
-    public List<Job<?, ?>> getDownstream(Job<?, ?> job) {
+    public List<Job> getDownstream(Job job) {
         return get(forward, job, false);
     }
 
@@ -144,24 +145,25 @@ public final class ModuleDependencyGraph {
      *
      * @return can be empty but never null.
      */
-    @SuppressWarnings("unused") // part of public API
-    public List<Job<?, ?>> getUpstream(Job<?, ?> job) {
+    @SuppressWarnings({"unused", "WeakerAccess"}) // part of public API
+    public List<Job> getUpstream(Job job) {
         return get(backward, job, true);
     }
 
-    public boolean hasDownstream(Job<?, ?> job) {
+    @SuppressWarnings("unused") // part of public API
+    public boolean hasDownstream(Job job) {
         return hasDependencies(forward, job);
     }
 
     @SuppressWarnings("unused") // part of public API
-    public boolean hasUpstream(Job<?, ?> job) {
+    public boolean hasUpstream(Job job) {
         return hasDependencies(backward, job);
     }
 
     /**
      * Gets all the direct and indirect upstream dependencies of the given project.
      */
-    public Set<Job<?, ?>> getTransitiveUpstream(Job<?, ?> src) {
+    public Set<Job> getTransitiveUpstream(Job src) {
         return getTransitive(backward, src, true);
     }
 
@@ -169,7 +171,7 @@ public final class ModuleDependencyGraph {
      * Gets all the direct and indirect downstream dependencies of the given project.
      */
     @SuppressWarnings("unused") // part of public API
-    public Set<Job<?, ?>> getTransitiveDownstream(Job<?, ?> src) {
+    public Set<Job> getTransitiveDownstream(Job src) {
         return getTransitive(forward, src, false);
     }
 
@@ -180,9 +182,9 @@ public final class ModuleDependencyGraph {
      * where the length is greater than 1.
      */
     @SuppressWarnings("unused") // part of public API
-    public boolean hasIndirectDependencies(Job<?, ?> src, Job<?, ?> dst) {
-        Set<Job<?, ?>> visited = new HashSet<>();
-        Stack<Job<?, ?>> queue = new Stack<>();
+    public boolean hasIndirectDependencies(Job src, Job dst) {
+        Set<Job> visited = new HashSet<>();
+        Stack<Job> queue = new Stack<>();
 
         queue.addAll(getDownstream(src));
         queue.remove(dst);
@@ -208,17 +210,17 @@ public final class ModuleDependencyGraph {
         add(backward, dep.getDownstreamJob(), dep);
     }
 
-    private boolean hasDependencies(Map<Job<?, ?>, Set<Dependency>> map, Job<?, ?> job) {
+    private boolean hasDependencies(Map<Job, Set<Dependency>> map, Job job) {
         return map.containsKey(job);
     }
 
-    private List<Job<?, ?>> get(Map<Job<?, ?>, Set<Dependency>> map, Job<?, ?> src, boolean up) {
+    private List<Job> get(Map<Job, Set<Dependency>> map, Job src, boolean up) {
         if (!map.containsKey(src)) {
             return emptyList();
         }
 
         Set<Dependency> v = map.get(src);
-        List<Job<?, ?>> result = new ArrayList<>(v.size());
+        List<Job> result = new ArrayList<>(v.size());
         for (Dependency d : v) {
             result.add(up ? d.getUpstreamJob() : d.getDownstreamJob());
         }
@@ -227,9 +229,9 @@ public final class ModuleDependencyGraph {
     }
 
 
-    private Set<Job<?, ?>> getTransitive(Map<Job<?, ?>, Set<Dependency>> direction, Job<?, ?> src, boolean up) {
-        Set<Job<?, ?>> visited = new HashSet<>();
-        Stack<Job<?, ?>> queue = new Stack<>();
+    private Set<Job> getTransitive(Map<Job, Set<Dependency>> direction, Job src, boolean up) {
+        Set<Job> visited = new HashSet<>();
+        Stack<Job> queue = new Stack<>();
 
         queue.add(src);
 
@@ -246,7 +248,7 @@ public final class ModuleDependencyGraph {
         return visited;
     }
 
-    private void add(Map<Job<?, ?>, Set<Dependency>> map, Job<?, ?> key, Dependency dep) {
+    private void add(Map<Job, Set<Dependency>> map, Job key, Dependency dep) {
         Set<Dependency> set = map.get(key);
         if (set == null) {
             set = new TreeSet<>(COMPARE_DEPENDENCIES_BY_NAME);
@@ -258,26 +260,26 @@ public final class ModuleDependencyGraph {
 
 
     private void topologicalDagSort() {
-        DirectedGraph<Job<?, ?>> g = new DirectedGraph<Job<?, ?>>() {
+        DirectedGraph<Job> g = new DirectedGraph<Job>() {
             @Override
-            protected Collection<Job<?, ?>> nodes() {
-                final Set<Job<?, ?>> nodes = new HashSet<>();
+            protected Collection<Job> nodes() {
+                final Set<Job> nodes = new HashSet<>();
                 nodes.addAll(forward.keySet());
                 nodes.addAll(backward.keySet());
                 return nodes;
             }
 
             @Override
-            protected Collection<Job<?, ?>> forward(Job<?, ?> node) {
+            protected Collection<Job> forward(Job node) {
                 return getDownstream(node);
             }
         };
 
-        List<DirectedGraph.SCC<Job<?, ?>>> sccs = g.getStronglyConnectedComponents();
+        List<DirectedGraph.SCC<Job>> sccs = g.getStronglyConnectedComponents();
 
-        final Map<Job<?, ?>, Integer> topoOrder = new HashMap<>();
+        final Map<Job, Integer> topoOrder = new HashMap<>();
         int idx = 0;
-        for (DirectedGraph.SCC<Job<?, ?>> scc : sccs) {
+        for (DirectedGraph.SCC<Job> scc : sccs) {
             for (Job<?, ?> n : scc) {
                 topoOrder.put(n, idx++);
             }
@@ -298,8 +300,8 @@ public final class ModuleDependencyGraph {
      * @since 1.341
      */
     public static abstract class Dependency {
-        private final Job<?, ?> upstream;
-        private final Job<?, ?> downstream;
+        private final Job upstream;
+        private final Job downstream;
 
         Dependency(Job<?, ?> upstream, Job<?, ?> downstream) {
             this.upstream = upstream;
@@ -307,11 +309,11 @@ public final class ModuleDependencyGraph {
         }
 
         @SuppressWarnings("WeakerAccess") // part of public API
-        public Job<?, ?> getUpstreamJob() {
+        public Job getUpstreamJob() {
             return upstream;
         }
 
-        public Job<?, ?> getDownstreamJob() {
+        public Job getDownstreamJob() {
             return downstream;
         }
 

@@ -55,7 +55,7 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
         ArrayList<Connector> buildGraphConnectorsModelArrayList = new ArrayList<>();
         for (Node item : iGraph.vertexSet()) {
             graph.setBuilding(graph.getBuilding() | item.isBuilding());
-            item.setBuildClass(item.payload() == payload ? "currentBuild" : "");
+            item.setCurrentNode(item.payload() == payload);
             nodeArrayList.add(item);
         }
 
@@ -93,7 +93,7 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
 
     protected abstract Set<PAYLOAD> getRoots();
 
-    protected abstract List<PAYLOAD> getDownstream(Node<PAYLOAD> b) throws ExecutionException, InterruptedException;
+    protected abstract List<PAYLOAD> getDownstream(PAYLOAD payload) throws ExecutionException, InterruptedException;
 
 
     private DirectedGraph<Node<PAYLOAD>, Edge> computeGraph() throws ExecutionException, InterruptedException, ClassNotFoundException, IOException {
@@ -114,13 +114,12 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
         return createNode(type, run, ++index);
     }
 
-    private void computeGraphFrom(Node<PAYLOAD> b) throws ExecutionException, InterruptedException, IOException {
-        List<PAYLOAD> runs = getDownstream(b);
-        for (PAYLOAD run : runs) {
-            if (run != null) {
-                Node<PAYLOAD> next = getNode(run);
+    private void computeGraphFrom(Node<PAYLOAD> node) throws ExecutionException, InterruptedException, IOException {
+        for (PAYLOAD downstream : getDownstream(node.payload())) {
+            if (downstream != null) {
+                Node<PAYLOAD> next = getNode(downstream);
                 graph.addVertex(next);
-                graph.addEdge(b, next, new Edge(b, next));
+                graph.addEdge(node, next, new Edge(node, next));
                 computeGraphFrom(next);
             }
         }

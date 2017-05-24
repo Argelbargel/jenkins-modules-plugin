@@ -1,16 +1,16 @@
-<ul class="flow">
+<ul class="flow {{graphViewModel.type}}">
     <li class="column-wrapper" ng-repeat="columns in graphViewModel.nodes">
         <div ng-repeat="node in columns.nodes | orderBy:'row'">
-            <div class="build {{node.buildClass}}" id="{{node.id}}" data-column="node.column" data-row="node.row">
-                <div class="title"
-                     style="background-color:{{node.color}}; background-image:linear-gradient({{node.color}}, white);">
-                    <a href="{{node.url}}">{{node.title}}</a>
+            <div class="node {{node.currentNode ? 'currentNode' : ''}}" id="{{node.id}}" data-column="node.column"
+                 data-row="node.row">
+                <div class="title">
+                    <img src="{{node.rootUrl}}/images/16x16/{{node.status.image}}" alt="{{node.status.summary}}"
+                         title="{{node.status.summary}}"/>
+                    <a class="model-link inside" href="{{node.rootUrl}}{{node.url}}">{{node.title}}</a>
                 </div>
                 <div class="details">
                     <div ng-show="node.started == true && node.building == false">
                         <span ng-bind-html="node.description | rawHtml"></span>
-                        <br/>
-                        Status: {{node.status}}
                         <br/>
                         <img title="Started" alt="Started" ng-src="{{node.rootUrl}}/images/16x16/clock.png"/>
                         {{node.startTime}}
@@ -18,15 +18,9 @@
                         <img title="Duration" alt="Duration" ng-src="{{node.rootUrl}}/images/16x16/hourglass.png"/>
                         {{node.duration}}
                         <br/>
-                        <a href="{{node.url}}console">
-                            <img title="view console output" alt="console"
-                                 ng-src="{{node.rootUrl}}/images/16x16/terminal.png"/>
-                        </a>
-                        <br/>
                     </div>
                     <div ng-show="node.started == true && node.building == true">
                         <img title="Started" alt="Started" ng-src="{{node.rootUrl}}/images/16x16/clock.png"/>{{node.timestamp}}
-                        ago<br/>
                         <br/>
                         <br/>
                         <table class="progress-bar">

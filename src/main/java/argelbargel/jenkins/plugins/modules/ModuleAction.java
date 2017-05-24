@@ -85,12 +85,12 @@ public final class ModuleAction extends InvisibleAction {
     }
 
     @SuppressWarnings("unused") // used by jobMain.jelly
-    public List<Job<?, ?>> getUpstreamJobs() {
+    public List<Job> getUpstreamJobs() {
         return ModuleDependencyGraph.get().getUpstream(getJob());
     }
 
     @SuppressWarnings("unused") // used by jobMain.jelly
-    public List<Job<?, ?>> getDownstreamJobs() {
+    public List<Job> getDownstreamJobs() {
         return ModuleDependencyGraph.get().getDownstream(getJob());
     }
 

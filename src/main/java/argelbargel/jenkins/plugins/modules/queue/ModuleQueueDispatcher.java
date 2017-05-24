@@ -47,7 +47,7 @@ public final class ModuleQueueDispatcher extends QueueTaskDispatcher {
         return canRun(waiting, ModuleDependencyGraph.get().getTransitiveUpstream(job), module.getPredicate());
     }
 
-    private CauseOfBlockage canRun(Item waiting, Collection<Job<?, ?>> upstream, ActionsPredicate predicate) {
+    private CauseOfBlockage canRun(Item waiting, Collection<Job> upstream, ActionsPredicate predicate) {
         for (Job<?, ?> job : upstream) {
             Item item = find(predicate, waiting, Jenkins.getInstance().getQueue().getItems((Task) job));
             if (item != null) {

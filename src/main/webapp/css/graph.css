@@ -5,42 +5,66 @@
     display: block;
 }
 
+.flow.OVERVIEW {
+    padding: 0;
+}
+
 .column-wrapper {
     margin: 20px;
     display: inline-block;
     vertical-align: top;
 }
 
-.build {
+.node {
     margin: 10px;
     border: solid 1px black;
     border-radius: 4px;
     font-size: 1em;
+}
+
+.MODULE .node {
+    min-width: 130px;
+    width: 130px;
+    min-height: 80px;
+    height: 80px;
+    font-size: 1em
+}
+
+.BUILD .node {
     min-width: 180px;
     min-height: 120px;
 }
 
-.build .title {
+.OVERVIEW .node {
+    min-width: 120px;
+    width: 120px;
+    min-height: 50px;
+    height: 50px;
+    font-size: 0.9em
+}
+
+.node .title {
     border-radius: 4px 4px 0 0;
     padding: 4px;
-    border-bottom: 1px solid black;
     text-align: center;
     font-size: 1em;
 }
 
-.build.currentBuild {
+.BUILD .node .title {
+    border-bottom: 1px solid black;
+}
+
+.node.currentNode {
     font-weight: bold;
     box-shadow: 2px 2px 6px black;
 }
 
-
-
-.build .details {
+.node .details {
     min-height: 40px;
     padding: 4px;
 }
 
-.build .details .status font {
+.node .details .status font {
     /* override the default color (can be red on failure) */
     color: black;
 }
@@ -50,21 +74,27 @@
     height: 20px;
 }
 
+.OVERVIEW .connector {
+    height: 10px;
+    margin-top: 2px;
+}
+
 .connector .left {
     margin-top: 10px;
     float: left;
 }
 
+
 .connector .right {
-    margin-top: 10px;
     float: right;
 }
 
 table.progress-bar {
     border-collapse: collapse;
     border: 1px solid #3465a4;
-    height: 6px;
-    width: 100px;
+    height: 8px;
+    width: 150px;
+    margin: 0 auto;
     clear: none;
 }
 

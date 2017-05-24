@@ -1,6 +1,7 @@
 package argelbargel.jenkins.plugins.modules.graph.model;
 
 
+import hudson.model.BallColor;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.Run;
@@ -21,10 +22,6 @@ import static java.lang.System.currentTimeMillis;
 public class Build extends Node<Run> {
     public Build(GraphType type, Run build, int index) {
         super(type, build, index);
-    }
-
-    public String getColor() {
-        return payload().getIconColor().getHtmlBaseColor();
     }
 
     public String getTitle() {
@@ -56,13 +53,17 @@ public class Build extends Node<Run> {
         return progress <= 100 ? progress : 99;
     }
 
-    public String getStatus() {
-        return payload().getBuildStatusSummary().message;
+    public Status getStatus() {
+        BallColor color = payload().getIconColor();
+        if (isBuilding()) {
+            color = color.anime();
+        }
+        return new Status(color, payload().getBuildStatusSummary().message);
     }
 
     @SuppressWarnings("deprecation")
     public String getUrl() { // TODO!
-        return payload().getAbsoluteUrl();
+        return payload().getUrl();
     }
 
     public String getStartTime() {

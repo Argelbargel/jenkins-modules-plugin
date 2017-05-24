@@ -1,7 +1,7 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson">
     <j:if test="${not empty it.blockers}">
-        <t:summary icon="orange-square.png">
+        <t:summary icon="/plugin/modules-plugin/images/48x48/icon-blocked.png">
             <p>${%blocked_by_upstream_for(it.blockDuration)}</p>
             <ul>
                 <j:forEach var="blocker" items="${it.blockers}">

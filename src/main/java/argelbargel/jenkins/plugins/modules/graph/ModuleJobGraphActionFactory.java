@@ -4,7 +4,7 @@ package argelbargel.jenkins.plugins.modules.graph;
 import argelbargel.jenkins.plugins.modules.ModuleTrigger;
 import hudson.Extension;
 import hudson.model.Action;
-import hudson.model.Run;
+import hudson.model.Job;
 import jenkins.model.ParameterizedJobMixIn;
 import jenkins.model.TransientActionFactory;
 
@@ -16,16 +16,16 @@ import static java.util.Collections.singleton;
 
 
 @Extension
-public final class ModuleGraphRunActionFactory extends TransientActionFactory<Run> {
+public final class ModuleJobGraphActionFactory extends TransientActionFactory<Job> {
     @Override
-    public Class<Run> type() {
-        return Run.class;
+    public Class<Job> type() {
+        return Job.class;
     }
 
     @Nonnull
     @Override
-    public Collection<? extends Action> createFor(@Nonnull Run run) {
-        ModuleTrigger trigger = ParameterizedJobMixIn.getTrigger(run.getParent(), ModuleTrigger.class);
-        return (trigger != null) ? singleton(new ModuleGraph(run)) : Collections.<Action>emptyList();
+    public Collection<? extends Action> createFor(@Nonnull Job job) {
+        ModuleTrigger trigger = ParameterizedJobMixIn.getTrigger(job, ModuleTrigger.class);
+        return (trigger != null) ? singleton(new ModuleJobGraph(job)) : Collections.<Action>emptyList();
     }
 }

@@ -32,7 +32,7 @@ angular.module('graphApp', [])
                                             length: 12,
                                             width: 12
                                         }]],
-                                        anchors: [[1, 0, 1, 0, 0, 37], [0, 0, -1, 0, 0, 37]],
+                                        anchors: [[1, 0, 1, 0, 0, stubY], [0, 0, -1, 0, 0, stubY]],
                                         connector: ["Flowchart", {stub: 25, gap: 0, midpoint: 0, alwaysRespectStubs: true}],
                                         endpoint: ["Blank", {}],
                                         paintStyle: {strokeStyle: 'grey', lineWidth: '3'}
@@ -54,7 +54,7 @@ angular.module('graphApp', [])
         return {
             restrict: 'E',
             templateUrl: function (element, attrs) {
-                return attrs.jenkinsurl + "/plugin/modules-plugin/scripts/graph-nodetemplate.html";
+                return attrs.template;
             },
             replace: true
         };

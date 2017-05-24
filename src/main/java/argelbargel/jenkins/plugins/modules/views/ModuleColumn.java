@@ -3,7 +3,6 @@ package argelbargel.jenkins.plugins.modules.views;
 
 import argelbargel.jenkins.plugins.modules.Messages;
 import argelbargel.jenkins.plugins.modules.ModuleAction;
-import argelbargel.jenkins.plugins.modules.graph.ModuleGraphJobAction;
 import hudson.Extension;
 import hudson.model.Job;
 import hudson.views.ListViewColumn;
@@ -24,11 +23,6 @@ public final class ModuleColumn extends ListViewColumn {
     public String getModuleName(Job<?, ?> job) {
         ModuleAction action = job.getAction(ModuleAction.class);
         return (action != null) ? action.getModuleName() : null;
-    }
-
-    public String getModuleGraphUrl(Job<?, ?> job) {
-        ModuleGraphJobAction action = job.getAction(ModuleGraphJobAction.class);
-        return (action != null) ? action.getUrlName() : null;
     }
 
     @Extension(ordinal = DEFAULT_COLUMNS_ORDINAL_PROPERTIES_START - 3)

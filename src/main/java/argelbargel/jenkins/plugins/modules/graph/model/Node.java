@@ -13,12 +13,13 @@ public abstract class Node<PAYLOAD> implements Serializable {
     private final int index;
     private int column;
     private int row;
-    private String buildClass = "";
+    private boolean currentNode;
 
     Node(GraphType type, PAYLOAD payload, int index) {
         this.type = type;
         this.payload = payload;
         this.index = index;
+        this.currentNode = false;
     }
 
     public final PAYLOAD payload() {
@@ -50,12 +51,12 @@ public abstract class Node<PAYLOAD> implements Serializable {
         return getId() + ": " + getTitle();
     }
 
-    public final String getBuildClass() {
-        return buildClass;
+    public final boolean isCurrentNode() {
+        return currentNode;
     }
 
-    public final void setBuildClass(String buildClass) {
-        this.buildClass = buildClass;
+    public final void setCurrentNode(boolean value) {
+        this.currentNode = value;
     }
 
     public final void setColumn(int column) {
@@ -78,17 +79,15 @@ public abstract class Node<PAYLOAD> implements Serializable {
 
     public abstract String getTitle();
 
-    public abstract String getColor();
-
     public abstract String getUrl();
 
     public abstract String getDescription();
 
+    public abstract Status getStatus();
+
     public abstract boolean isStarted();
 
     public abstract boolean isBuilding();
-
-    public abstract String getStatus();
 
     public abstract int getProgress();
 
