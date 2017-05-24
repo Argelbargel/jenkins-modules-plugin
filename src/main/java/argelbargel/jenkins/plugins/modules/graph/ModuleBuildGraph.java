@@ -78,8 +78,13 @@ public class ModuleBuildGraph extends AbstractModuleGraph<Run> implements Action
     @Override
     protected List<Run> getDownstream(Run payload) throws ExecutionException, InterruptedException {
         List<Run> runs = new ArrayList<>();
-        for (Job downstream : ModuleDependencyGraph.get().getDownstream(payload.getParent())) {
-            addTriggeredAndBlockedBuilds(runs, (List<Run<?, ?>>) downstream.getBuilds(), payload);
+
+        Job parent = payload.getParent();
+        ModuleDependencyGraph dependencyGraph = ModuleDependencyGraph.get();
+        for (Job downstream : dependencyGraph.getDownstream(parent)) {
+            if (!dependencyGraph.hasIndirectDependencies(parent, downstream)) {
+                addTriggeredAndBlockedBuilds(runs, (List<Run<?, ?>>) downstream.getBuilds(), payload);
+            }
         }
 
         return runs;

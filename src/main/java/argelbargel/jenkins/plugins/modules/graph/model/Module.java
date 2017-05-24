@@ -1,6 +1,7 @@
 package argelbargel.jenkins.plugins.modules.graph.model;
 
 
+import argelbargel.jenkins.plugins.modules.ModuleAction;
 import hudson.model.Job;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public final class Module extends Node<Job> {
 
     @Override
     public String getTitle() {
-        return payload().getFullDisplayName();
+        return ModuleAction.get(payload()).getModuleName();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package argelbargel.jenkins.plugins.modules.graph.model;
 
 
+import argelbargel.jenkins.plugins.modules.ModuleAction;
 import hudson.model.BallColor;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
@@ -25,7 +26,7 @@ public class Build extends Node<Run> {
     }
 
     public String getTitle() {
-        return payload().getFullDisplayName();
+        return ModuleAction.get(payload().getParent()).getModuleName() + " #" + payload().getNumber();
     }
 
     public String getDescription() {
