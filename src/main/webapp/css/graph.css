@@ -5,10 +5,6 @@
     display: block;
 }
 
-.flow.OVERVIEW {
-    padding: 0;
-}
-
 .column-wrapper {
     margin: 20px;
     display: inline-block;
@@ -33,14 +29,6 @@
 .BUILD .node {
     min-width: 180px;
     min-height: 120px;
-}
-
-.OVERVIEW .node {
-    min-width: 120px;
-    width: 120px;
-    min-height: 50px;
-    height: 50px;
-    font-size: 0.9em
 }
 
 .node .title {
@@ -72,11 +60,6 @@
 .connector {
     margin: 10px;
     height: 20px;
-}
-
-.OVERVIEW .connector {
-    height: 10px;
-    margin-top: 2px;
 }
 
 .connector .left {
