@@ -1,17 +1,6 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson"
-         xmlns:local="local">
+<j:jelly xmlns:j="jelly:core" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:local="local">
     <d:taglib uri="local">
-        <d:tag name="relationship">
-            <j:if test="${lhs.fingerprintConfigured and rhs.fingerprintConfigured}">
-                <st:nbsp/>
-                <a href="${rootURL}/projectRelationship?lhs=${lhs.name}&amp;rhs=${rhs.name}">
-                    <l:icon class="icon-fingerprint icon-sm"/>
-                </a>
-            </j:if>
-        </d:tag>
-
         <d:tag name="list"> <!-- @title, @items and @up -->
             <j:if test="${!empty(items)}">
                 <h3>${title}</h3>
@@ -19,8 +8,9 @@
                     <j:forEach var="item" items="${items}">
                         <j:if test="${h.hasPermission(item,item.READ)}">
                             <li>
-                                <t:jobLink job="${item}"/>
-                                <local:relationship lhs="${up ? item : it}" rhs="${up ? it : item}"/>
+                                <l:icon alt="${item.iconColor.description}"
+                                        class="${item.buildStatusIconClassName} icon-sm"/>
+                                <a class="model-link inside" href="${rootURL}/${item.url}">${it.moduleName(item)}</a>
                             </li>
                         </j:if>
                     </j:forEach>

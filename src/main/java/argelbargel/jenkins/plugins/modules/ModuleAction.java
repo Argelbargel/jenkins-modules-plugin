@@ -10,6 +10,8 @@ import hudson.model.Result;
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
 import org.apache.commons.lang.StringUtils;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import javax.annotation.Nonnull;
 import java.util.HashSet;
@@ -92,6 +94,12 @@ public final class ModuleAction extends InvisibleAction {
     @SuppressWarnings("unused") // used by jobMain.jelly
     public List<Job> getDownstreamJobs() {
         return ModuleDependencyGraph.get().getDownstream(getJob());
+    }
+
+    @Restricted(NoExternalUse.class)
+    @SuppressWarnings("unused") // used by jobMain.jelly
+    public String moduleName(Job job) {
+        return ModuleAction.get(job).getModuleName();
     }
 
     public long getDependencyWaitInterval() {
