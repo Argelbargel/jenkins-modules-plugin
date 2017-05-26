@@ -17,17 +17,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Logger;
 
 import static argelbargel.jenkins.plugins.modules.graph.model.GraphType.BUILD;
-import static java.util.logging.Level.WARNING;
 
 
 /**
  * Compute the graph of related builds, based on {@link Cause.UpstreamCause}.
  */
 public class ModuleBuildGraph extends AbstractModuleGraph<Run> implements Action {
-    private static final Logger LOGGER = Logger.getLogger(ModuleBuildGraph.class.getName());
     private static final String URL_NAME = "moduleBuildGraph";
     private static final String DISPLAY_NAME = "Build Graph";
     private static final String ICON_FILE_NAME = "/plugin/modules-plugin/images/24x24/icon-build-graph.png";
@@ -87,11 +84,7 @@ public class ModuleBuildGraph extends AbstractModuleGraph<Run> implements Action
         ModuleDependencyGraph dependencyGraph = ModuleDependencyGraph.get();
         for (Job downstream : dependencyGraph.getDownstream(parent)) {
             if (!dependencyGraph.hasIndirectDependencies(parent, downstream)) {
-                try {
-                    addTriggeredAndBlockedBuilds(runs, (List<Run<?, ?>>) downstream.getBuilds(), payload);
-                } catch (Exception e) {
-                    LOGGER.log(WARNING, "ignoring job " + downstream, e);
-                }
+                addTriggeredAndBlockedBuilds(runs, (List<Run<?, ?>>) downstream.getBuilds(), payload);
             }
         }
 
