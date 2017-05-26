@@ -1,16 +1,24 @@
 package argelbargel.jenkins.plugins.modules.queue;
 
 
+import hudson.model.Job;
+import hudson.model.Queue.Item;
+import hudson.model.Queue.LeftItem;
+import hudson.model.Run;
+import jenkins.model.Jenkins;
+
 import java.io.Serializable;
 
 
 public final class Blocker implements Serializable {
+    private final long queueId;
     private final String moduleName;
     private final String fullName;
     private final Integer build;
     private final String url;
 
-    Blocker(String moduleName, String fullName, Integer build, String url) {
+    Blocker(long id, String moduleName, String fullName, Integer build, String url) {
+        this.queueId = id;
         this.moduleName = moduleName;
         this.fullName = fullName;
         this.build = build;
@@ -32,5 +40,25 @@ public final class Blocker implements Serializable {
     @SuppressWarnings("unused")// used by summary.jelly
     public String getUrl() {
         return url;
+    }
+
+    boolean isBlocking() {
+        if (build != null) {
+            return isBlocking(Jenkins.getInstance().getItemByFullName(fullName, Job.class));
+        } else {
+            return isBlocking(Jenkins.getInstance().getQueue().getItem(queueId));
+        }
+    }
+
+    private boolean isBlocking(Item item) {
+        return !LeftItem.class.isInstance(item);
+    }
+
+    private boolean isBlocking(Job job) {
+        return job != null && isBlocking(job.getBuildByNumber(build));
+    }
+
+    private boolean isBlocking(Run build) {
+        return build != null && build.isBuilding();
     }
 }

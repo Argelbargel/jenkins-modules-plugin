@@ -1,10 +1,10 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:t="/lib/hudson">
-    <j:if test="${not empty it.blockers}">
+    <j:if test="${not empty it.allBlockers}">
         <t:summary icon="/plugin/modules-plugin/images/48x48/icon-blocked.png">
             <p>${%blocked_by_upstream_for(it.blockDuration)}</p>
             <ul>
-                <j:forEach var="blocker" items="${it.blockers}">
+                <j:forEach var="blocker" items="${it.allBlockers}">
                     <j:if test="${blocker.url!=null and app.getItemByFullName(blocker.fullName)!=null}">
                         <li>
                             <j:choose>

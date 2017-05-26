@@ -12,6 +12,7 @@ import hudson.model.Queue.Item;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -93,8 +94,19 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     @SuppressWarnings("unused") // used by summary.jelly
-    public Collection<Blocker> getBlockers() {
+    public Collection<Blocker> getAllBlockers() {
         return blockers.values();
+    }
+
+    public Collection<Blocker> getCurrentBlockers() {
+        Collection<Blocker> current = new ArrayList<>();
+        for (Blocker blocker : getAllBlockers()) {
+            if (blocker.isBlocking()) {
+                current.add(blocker);
+            }
+        }
+
+        return current;
     }
 
     void unblock() {
@@ -102,7 +114,7 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     private void block(long queueId, Job task, Integer build) {
-        blockers.put(queueId, new Blocker(ModuleAction.get(task).getModuleName(), task.getFullName(), build, task.getUrl()));
+        blockers.put(queueId, new Blocker(queueId, ModuleAction.get(task).getModuleName(), task.getFullName(), build, task.getUrl()));
     }
 
     // use queue-id and build-number so we still show correct data after restarts

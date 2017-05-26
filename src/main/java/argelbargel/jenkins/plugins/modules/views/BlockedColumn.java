@@ -29,7 +29,7 @@ public final class BlockedColumn extends ListViewColumn {
         for (Item item : Jenkins.getInstance().getQueue().getItems()) {
             if (item.task == job) {
                 ModuleBlockedAction blocked = ModuleBlockedAction.get(item);
-                return blocked != null && blocked.isBlocked() ? blocked.getBlockers() : Collections.<Blocker>emptyList();
+                return blocked != null && blocked.isBlocked() ? blocked.getCurrentBlockers() : Collections.<Blocker>emptyList();
             }
         }
 
