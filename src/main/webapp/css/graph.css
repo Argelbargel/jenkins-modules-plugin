@@ -87,6 +87,7 @@
 }
 
 .node.currentNode .background {
+    background-color: #d3e1e6;
     font-weight: bold;
     box-shadow: 2px 2px 6px black;
 }
