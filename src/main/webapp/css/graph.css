@@ -4,7 +4,7 @@
 
 #flow, .flow, #connectors, .connectors {
     width: 100%;
-    height: 100%
+    height: 100%;
 }
 
 #connectors, .connectors {
@@ -18,6 +18,7 @@
     width: 100%;
     height: 100%;
     z-index: 2;
+    white-space: nowrap;
 }
 
 .column-wrapper {
@@ -30,6 +31,7 @@
     position: relative;
     margin: 10px;
     font-size: 1em;
+    white-space: normal;
 }
 
 .node .background {
