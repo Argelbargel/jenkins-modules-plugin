@@ -14,13 +14,13 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 
@@ -76,7 +76,7 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
 
     protected abstract Node<PAYLOAD> createNode(GraphType type, PAYLOAD payload, int index, boolean current);
 
-    protected abstract Set<PAYLOAD> getRoots();
+    protected abstract Collection<PAYLOAD> getRoots();
 
     protected abstract List<PAYLOAD> getDownstream(PAYLOAD payload) throws ExecutionException, InterruptedException;
 

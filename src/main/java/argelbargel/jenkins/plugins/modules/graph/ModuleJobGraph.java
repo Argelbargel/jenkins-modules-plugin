@@ -9,8 +9,8 @@ import hudson.model.Action;
 import hudson.model.Job;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import static argelbargel.jenkins.plugins.modules.graph.model.GraphType.MODULE;
@@ -46,7 +46,7 @@ public final class ModuleJobGraph extends AbstractModuleGraph<Job> implements Ac
     }
 
     @Override
-    protected Set<Job> getRoots() {
+    protected Collection<Job> getRoots() {
         return ModuleDependencyGraph.get().getRoots(getPayload());
     }
 

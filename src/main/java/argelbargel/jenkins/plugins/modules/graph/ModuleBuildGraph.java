@@ -12,6 +12,7 @@ import hudson.model.Job;
 import hudson.model.Run;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +51,7 @@ public class ModuleBuildGraph extends AbstractModuleGraph<Run> implements Action
     }
 
     @Override
-    protected Set<Run> getRoots() {
+    protected Collection<Run> getRoots() {
         Run run = getPayload();
         Set<Run> roots = new HashSet<>();
         findRoots(roots, run);
