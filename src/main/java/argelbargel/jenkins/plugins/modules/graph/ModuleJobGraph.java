@@ -41,8 +41,8 @@ public final class ModuleJobGraph extends AbstractModuleGraph<Job> implements Ac
     }
 
     @Override
-    protected Node<Job> createNode(GraphType type, Job job, int index) {
-        return new Module(type, job, index);
+    protected Node<Job> createNode(GraphType type, Job job, int index, boolean current) {
+        return new Module(type, job, current, index);
     }
 
     @Override

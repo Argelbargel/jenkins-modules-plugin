@@ -1,8 +1,6 @@
 package argelbargel.jenkins.plugins.modules.graph.model;
 
 
-import jenkins.model.Jenkins;
-
 import java.io.Serializable;
 import java.util.List;
 
@@ -11,15 +9,15 @@ public abstract class Node<PAYLOAD> implements Serializable {
     private final GraphType type;
     private final PAYLOAD payload;
     private final int index;
+    private final boolean currentNode;
     private int column;
     private int row;
-    private boolean currentNode;
 
-    Node(GraphType type, PAYLOAD payload, int index) {
+    Node(GraphType type, PAYLOAD payload, int index, boolean current) {
         this.type = type;
         this.payload = payload;
         this.index = index;
-        this.currentNode = false;
+        this.currentNode = current;
     }
 
     public final PAYLOAD payload() {
@@ -28,10 +26,6 @@ public abstract class Node<PAYLOAD> implements Serializable {
 
     public final GraphType getType() {
         return type;
-    }
-
-    public final String getRootUrl() {
-        return Jenkins.getInstance().getRootUrl();
     }
 
     public final String getId() {
@@ -55,10 +49,6 @@ public abstract class Node<PAYLOAD> implements Serializable {
         return currentNode;
     }
 
-    public final void setCurrentNode(boolean value) {
-        this.currentNode = value;
-    }
-
     public final void setColumn(int column) {
         this.column = column;
     }
@@ -69,7 +59,7 @@ public abstract class Node<PAYLOAD> implements Serializable {
 
     @Override
     public final boolean equals(Object obj) {
-        return obj instanceof Build && payload().equals(((Build) obj).payload());
+        return obj instanceof Node && payload().equals(((Node) obj).payload());
     }
 
     @Override

@@ -1,6 +1,6 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
-    <l:layout norefresh="true" title="ModuleGraph">
+    <l:layout norefresh="true" title="Module Graph">
         <st:include page="sidepanel.jelly" it="${it.payload}"/>
         <l:main-panel>
             <script type='text/javascript' src='${resURL}/plugin/modules-plugin/scripts/jquery.min.js'/>
@@ -13,13 +13,14 @@
             <script>jQuery.noConflict();</script>
 
             <div ng-app="graphApp" ng-controller="GraphAppCtrl" id="graph">
-                <my-graph style="margin: 5px; width: 100%; height: 100%;"
-                          template="${resURL}/plugin/modules-plugin/scripts/jobgraph-nodetemplate.html"/>
+                <div id="connectors"></div>
+                <my-graph template="${resURL}/plugin/modules-plugin/scripts/jobgraph-nodetemplate.html"/>
             </div>
             <script type="text/javascript">
                 <![CDATA[
+                var rootURL = "${rootURL}"
+                var resURL = "${resURL}"
                 var ajaxPath = 'api/json';
-                var stubY = 37;
                 ]]>
             </script>
             <script type="text/javascript" src='${resURL}/plugin/modules-plugin/scripts/graph-appctrl.js'/>

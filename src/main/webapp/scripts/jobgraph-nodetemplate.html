@@ -1,11 +1,14 @@
 <ul class="flow {{graphViewModel.type}}">
-    <li class="column-wrapper" ng-repeat="columns in graphViewModel.nodes">
+    <li class="column-wrapper" ng-repeat="columns in graphViewModel.columns">
         <div ng-repeat="node in columns.nodes | orderBy:'row'">
             <div class="node {{node.currentNode ? 'currentNode' : ''}}" id="{{node.id}}" data-column="node.column"
                  data-row="node.row">
-                <div class="title"
-                     style="background-color:{{node.color}}; background-image:linear-gradient({{node.color}}, white);">
-                    <a class="model-link inside" href="{{node.rootUrl}}{{node.url}}">{{node.title}}</a>
+                <div class="background"></div>
+                <div class="content">
+                    <div class="title"
+                         style="background-color:{{node.color}}; background-image:linear-gradient({{node.color}}, white);">
+                        <a class="model-link inside" href="{{rootURL}}{{node.url}}">{{node.title}}</a>
+                    </div>
                 </div>
             </div>
         </div>

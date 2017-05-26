@@ -1,39 +1,42 @@
 <ul class="flow {{graphViewModel.type}}">
-    <li class="column-wrapper" ng-repeat="columns in graphViewModel.nodes">
+    <li class="column-wrapper" ng-repeat="columns in graphViewModel.columns">
         <div ng-repeat="node in columns.nodes | orderBy:'row'">
             <div class="node {{node.currentNode ? 'currentNode' : ''}}" id="{{node.id}}" data-column="node.column"
                  data-row="node.row">
-                <div class="title">
-                    <img src="{{node.rootUrl}}/images/16x16/{{node.status.image}}" alt="{{node.status.summary}}"
-                         title="{{node.status.summary}}"/>
-                    <a class="model-link inside" href="{{node.rootUrl}}{{node.url}}">{{node.title}}</a>
-                </div>
-                <div class="details">
-                    <div ng-show="node.started == true && node.building == false">
-                        <span ng-bind-html="node.description | rawHtml"></span>
-                        <br/>
-                        <img title="Started" alt="Started" ng-src="{{node.rootUrl}}/images/16x16/clock.png"/>
-                        {{node.startTime}}
-                        <br/>
-                        <img title="Duration" alt="Duration" ng-src="{{node.rootUrl}}/images/16x16/hourglass.png"/>
-                        {{node.duration}}
-                        <br/>
+                <div class="background"></div>
+                <div class="content">
+                    <div class="title">
+                        <img src="{{resURL}}/images/16x16/{{node.status.image}}" alt="{{node.status.summary}}"
+                             title="{{node.status.summary}}"/>
+                        <a class="model-link inside" href="{{rootURL}}{{node.url}}">{{node.title}}</a>
                     </div>
-                    <div ng-show="node.started == true && node.building == true">
-                        <img title="Started" alt="Started" ng-src="{{node.rootUrl}}/images/16x16/clock.png"/>{{node.timestamp}}
-                        <br/>
-                        <br/>
-                        <table class="progress-bar">
-                            <tbody>
-                            <tr>
-                                <td class="progress-bar-done" style="width:{{node.progress}}%;"></td>
-                                <td class="progress-bar-left" style="width:{{100-node.progress}}%"></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div ng-show="node.started == false && node.building == false">
-                        Scheduled
+                    <div class="details">
+                        <div ng-show="node.started == true && node.building == false">
+                            <span ng-bind-html="node.description | rawHtml"></span>
+                            <br/>
+                            <img title="Started" alt="Started" ng-src="{{resURL}}/images/16x16/clock.png"/>
+                            {{node.startTime}}
+                            <br/>
+                            <img title="Duration" alt="Duration" ng-src="{{resURL}}/images/16x16/hourglass.png"/>
+                            {{node.duration}}
+                            <br/>
+                        </div>
+                        <div ng-show="node.started == true && node.building == true">
+                            <img title="Started" alt="Started" ng-src="{{resURL}}/images/16x16/clock.png"/>{{node.timestamp}}
+                            <br/>
+                            <br/>
+                            <table class="progress-bar">
+                                <tbody>
+                                <tr>
+                                    <td class="progress-bar-done" style="width:{{node.progress}}%;"></td>
+                                    <td class="progress-bar-left" style="width:{{100-node.progress}}%"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div ng-show="node.started == false && node.building == false">
+                            Scheduled
+                        </div>
                     </div>
                 </div>
             </div>

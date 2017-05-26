@@ -21,8 +21,8 @@ import static java.lang.System.currentTimeMillis;
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
 public class Build extends Node<Run> {
-    public Build(GraphType type, Run build, int index) {
-        super(type, build, index);
+    public Build(GraphType type, Run build, boolean current, int index) {
+        super(type, build, index, current);
     }
 
     public String getTitle() {

@@ -6,33 +6,38 @@ import java.util.ArrayList;
 
 public class Graph {
     private final GraphType type;
-    private ArrayList<Column> nodes;
-    private ArrayList<Connector> connectors;
+    private final ArrayList<Column> columns;
+    private final ArrayList<Connector> connectors;
     private Boolean isBuilding = false;
-    private Integer nodesSize;
 
     public Graph(GraphType type) {
         this.type = type;
+        this.columns = new ArrayList<>();
+        this.connectors = new ArrayList<>();
     }
 
     public GraphType getType() {
         return type;
     }
 
-    public ArrayList<Column> getNodes() {
-        return nodes;
+    public ArrayList<Column> getColumns() {
+        return columns;
     }
 
-    public void setNodes(ArrayList<Column> nodes) {
-        this.nodes = nodes;
+    public void addNode(Node node) {
+        while (node.getColumn() >= columns.size()) {
+            columns.add(new Column());
+        }
+
+        columns.get(node.getColumn()).addNode(node);
+    }
+
+    public void addConnector(String source, String target) {
+        connectors.add(new Connector(source, target));
     }
 
     public ArrayList<Connector> getConnectors() {
         return connectors;
-    }
-
-    public void setConnectors(ArrayList<Connector> connectors) {
-        this.connectors = connectors;
     }
 
     public Boolean getBuilding() {
@@ -41,13 +46,5 @@ public class Graph {
 
     public void setBuilding(Boolean building) {
         isBuilding = building;
-    }
-
-    public Integer getNodesSize() {
-        return nodesSize;
-    }
-
-    public void setNodesSize(Integer nodesSize) {
-        this.nodesSize = nodesSize;
     }
 }

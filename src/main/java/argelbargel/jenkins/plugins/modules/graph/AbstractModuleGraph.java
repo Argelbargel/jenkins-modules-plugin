@@ -1,13 +1,12 @@
 package argelbargel.jenkins.plugins.modules.graph;
 
 
-import argelbargel.jenkins.plugins.modules.graph.model.Column;
-import argelbargel.jenkins.plugins.modules.graph.model.Connector;
 import argelbargel.jenkins.plugins.modules.graph.model.Graph;
 import argelbargel.jenkins.plugins.modules.graph.model.GraphType;
 import argelbargel.jenkins.plugins.modules.graph.model.Node;
 import com.google.gson.GsonBuilder;
 import hudson.model.Api;
+import jenkins.model.Jenkins;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import org.kohsuke.stapler.export.Exported;
@@ -15,11 +14,12 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -28,8 +28,9 @@ import java.util.concurrent.ExecutionException;
 public abstract class AbstractModuleGraph<PAYLOAD> {
     private final GraphType type;
     private final PAYLOAD payload;
-    private DirectedGraph<Node<PAYLOAD>, Edge> graph;
+    private transient DirectedGraph<Node<PAYLOAD>, Edge> graph;
     private transient int index = 0;
+    private transient Map<PAYLOAD, Node<PAYLOAD>> nodes;
 
     AbstractModuleGraph(GraphType type, PAYLOAD payload) {
         this.type = type;
@@ -45,51 +46,35 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
         return new Api(this);
     }
 
+    @Exported
+    @SuppressWarnings("unused") // used by api/json
+    public final String getRootUrl() {
+        return Jenkins.getInstance().getRootUrl();
+    }
 
     @Exported
     @SuppressWarnings("unused") // used by index.jelly
     public final String getGraph() throws InterruptedException, ExecutionException, ClassNotFoundException, IOException {
         DirectedGraph<Node<PAYLOAD>, Edge> iGraph = this.computeGraph();
+
         Graph graph = new Graph(type);
-        ArrayList<Node> nodeArrayList = new ArrayList<>();
-        ArrayList<Connector> buildGraphConnectorsModelArrayList = new ArrayList<>();
-        for (Node item : iGraph.vertexSet()) {
-            graph.setBuilding(graph.getBuilding() | item.isBuilding());
-            item.setCurrentNode(item.payload() == payload);
-            nodeArrayList.add(item);
-        }
 
-
-        ArrayList<Column> columnArrayList = new ArrayList<>();
-        for (Node node : nodeArrayList) {
-            if (node.getColumn() >= columnArrayList.size()) {
-                Column column = new Column();
-                ArrayList<Node> nodes = new ArrayList<>();
-                nodes.add(node);
-                column.setNodes(nodes);
-                columnArrayList.add(column);
-            } else {
-                Column column = columnArrayList.get(node.getColumn());
-                column.getNodes().add(node);
-            }
+        for (Node node : iGraph.vertexSet()) {
+            graph.addNode(node);
+            graph.setBuilding(graph.getBuilding() | node.isBuilding());
         }
 
         for (Edge edge : iGraph.edgeSet()) {
-            Connector connector = new Connector();
-            connector.setSource(edge.getSource().getId());
-            connector.setTarget(edge.getTarget().getId());
-            buildGraphConnectorsModelArrayList.add(connector);
+            graph.addConnector(edge.getSource().getId(), edge.getTarget().getId());
         }
-        graph.setNodesSize(nodeArrayList.size());
-        graph.setNodes(columnArrayList);
-        graph.setConnectors(buildGraphConnectorsModelArrayList);
+
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(Node.class, new NodeSerializer());
         return builder.create().toJson(graph);
     }
 
 
-    protected abstract Node<PAYLOAD> createNode(GraphType type, PAYLOAD payload, int index);
+    protected abstract Node<PAYLOAD> createNode(GraphType type, PAYLOAD payload, int index, boolean current);
 
     protected abstract Set<PAYLOAD> getRoots();
 
@@ -98,26 +83,31 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
 
     private DirectedGraph<Node<PAYLOAD>, Edge> computeGraph() throws ExecutionException, InterruptedException, ClassNotFoundException, IOException {
         if (graph == null) {
+            graph = new SimpleDirectedGraph<>(new EdgeFactory());
+            nodes = new HashMap<>();
             index = 0;
-            for (PAYLOAD run : getRoots()) {
-                Node<PAYLOAD> build = createNode(run);
-                graph = new SimpleDirectedGraph<>(new EdgeFactory());
-                graph.addVertex(build);
-                computeGraphFrom(build);
-                setupDisplayGrid(build);
+            for (PAYLOAD root : getRoots()) {
+                Node<PAYLOAD> node = getOrCreateNode(root);
+                graph.addVertex(node);
+                computeGraphFrom(node);
+                setupDisplayGrid(node);
             }
         }
         return graph;
     }
 
-    private Node<PAYLOAD> createNode(PAYLOAD run) {
-        return createNode(type, run, ++index);
+    private Node<PAYLOAD> getOrCreateNode(PAYLOAD payload) {
+        if (!nodes.containsKey(payload)) {
+            nodes.put(payload, createNode(type, payload, ++index, this.payload.equals(payload)));
+        }
+
+        return nodes.get(payload);
     }
 
     private void computeGraphFrom(Node<PAYLOAD> node) throws ExecutionException, InterruptedException, IOException {
         for (PAYLOAD downstream : getDownstream(node.payload())) {
             if (downstream != null) {
-                Node<PAYLOAD> next = getNode(downstream);
+                Node<PAYLOAD> next = getOrCreateNode(downstream);
                 graph.addVertex(next);
                 graph.addEdge(node, next, new Edge(node, next));
                 computeGraphFrom(next);
@@ -125,27 +115,18 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
         }
     }
 
-    private Node<PAYLOAD> getNode(PAYLOAD r) {
-        for (Node<PAYLOAD> build : graph.vertexSet()) {
-            if (build.payload().equals(r)) {
-                return build;
-            }
-        }
-        return createNode(r);
-    }
-
     /**
-     * Assigns a unique row and column to each build in the graph
+     * Assigns a unique row and column to each node in the graph
      */
-    private void setupDisplayGrid(Node<PAYLOAD> build) {
-        List<List<Node>> allPaths = findAllPaths(build);
+    private void setupDisplayGrid(Node<PAYLOAD> node) {
+        List<List<Node>> allPaths = findAllPaths(node);
         // make the longer paths bubble up to the top
         Collections.sort(allPaths, new Comparator<List>() {
-            public int compare(List runs1, List runs2) {
-                return runs2.size() - runs1.size();
+            public int compare(List paths1, List paths2) {
+                return paths2.size() - paths1.size();
             }
         });
-        // set the build row and column of each build
+        // set the node row and column of each node
         // loop backwards through the rows so that the lowest path a job is on
         // will be assigned
         for (int row = allPaths.size() - 1; row >= 0; row--) {

@@ -5,13 +5,17 @@ import java.util.ArrayList;
 
 
 public class Column {
-    private ArrayList<Node> nodes;
+    private final ArrayList<Node> nodes;
+
+    Column() {
+        nodes = new ArrayList<>();
+    }
 
     public ArrayList<Node> getNodes() {
         return nodes;
     }
 
-    public void setNodes(ArrayList<Node> nodes) {
-        this.nodes = nodes;
+    void addNode(Node node) {
+        nodes.add(node);
     }
 }

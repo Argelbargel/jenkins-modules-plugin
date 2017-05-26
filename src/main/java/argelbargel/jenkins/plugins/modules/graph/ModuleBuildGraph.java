@@ -45,8 +45,8 @@ public class ModuleBuildGraph extends AbstractModuleGraph<Run> implements Action
     }
 
     @Override
-    protected Node<Run> createNode(GraphType type, Run payload, int index) {
-        return new Build(type, payload, ++index);
+    protected Node<Run> createNode(GraphType type, Run payload, int index, boolean current) {
+        return new Build(type, payload, current, ++index);
     }
 
     @Override

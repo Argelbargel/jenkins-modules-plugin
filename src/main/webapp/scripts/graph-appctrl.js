@@ -1,9 +1,9 @@
 angular.module('graphApp', [])
     .controller('GraphAppCtrl', ['$scope', '$http', '$timeout', function GraphAppCtrl($scope, $http, $timeout) {
 
-        var graphDataModel = {nodes: [], connectors: []};
-        var graphPlumb = jsPlumb.getInstance({Container: "graph"});
-        var nodesSize = 0;
+        var graphDataModel = {columns: [], connectors: []};
+        var graphPlumb = jsPlumb.getInstance({Container: "connectors"});
+        var columnsSize = 0;
         var isBuilding = false;
         $scope.callAtTimeout = function () {
             $http.get(ajaxPath)
@@ -15,24 +15,26 @@ angular.module('graphApp', [])
                             data = JSON.parse(response.data);
                         }
                     var graph = JSON.parse(data.graph);
-                    if (graph.isBuilding || nodesSize != graph.nodesSize || isBuilding != graph.isBuilding) {
-                        nodesSize = graph.nodesSize;
+                    if (graph.isBuilding || columnsSize != graph.columns.length || isBuilding != graph.isBuilding) {
+                        columnsSize = graph.columns.length;
                         isBuilding = graph.isBuilding;
                         $scope.graphViewModel = graph;
+                        $scope.resURL = resURL;
+                        $scope.rootURL = data.rootUrl;
                             $timeout(function () {
                                 graphPlumb.reset();
-                                for (i = 0; i < graph.connectors.length; i++) {
-                                    var connectorarrow = graph.connectors[i];
+                                for (var i = 0; i < graph.connectors.length; i++) {
+                                    var connector = graph.connectors[i];
                                     graphPlumb.connect({
-                                        source: connectorarrow.source,
-                                        target: connectorarrow.target,
+                                        source: connector.source,
+                                        target: connector.target,
                                         overlays: [["Arrow", {
                                             location: 1,
                                             id: "arrow",
                                             length: 12,
                                             width: 12
                                         }]],
-                                        anchors: [[1, 0, 1, 0, 0, stubY], [0, 0, -1, 0, 0, stubY]],
+                                        anchors: [[1, 0.6, 1, 0], [0, 0.6, -1, 0]],
                                         connector: ["Flowchart", {stub: 25, gap: 0, midpoint: 0, alwaysRespectStubs: true}],
                                         endpoint: ["Blank", {}],
                                         paintStyle: {strokeStyle: 'grey', lineWidth: '3'}

@@ -11,8 +11,8 @@ import static java.util.Collections.emptyList;
 
 
 public final class Module extends Node<Job> {
-    public Module(GraphType type, Job job, int index) {
-        super(type, job, index);
+    public Module(GraphType type, Job job, boolean current, int index) {
+        super(type, job, index, current);
     }
 
     @Override
