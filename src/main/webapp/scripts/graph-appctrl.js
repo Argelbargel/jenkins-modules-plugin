@@ -37,7 +37,8 @@ angular.module('graphApp', [])
                                         anchors: [[1, 0.6, 1, 0], [0, 0.6, -1, 0]],
                                         connector: ["Flowchart", {stub: 25, gap: 0, midpoint: 0, alwaysRespectStubs: true}],
                                         endpoint: ["Blank", {}],
-                                        paintStyle: {strokeStyle: 'grey', lineWidth: '3'}
+                                        paintStyle: {strokeStyle: 'grey', lineWidth: '3'},
+                                        hoverPaintStyle: {strokeStyle: "red", lineWidth: '5'}
                                     });
                                 }
                                 graphPlumb.repaintEverything();
