@@ -20,14 +20,32 @@ upstream-project).
  
 ### I still don't get it. What made you built it?
 
-Let's say you've got your run of the mill MVC-project but your models, views and controllers are separated into different
-(gradle or maven) projects and just depend on the artifacts built by these projects. Each of these projects has their
- own pipeline-job in Jenkins. Whenever there is a change to the
- model-layer you'll want to build and test your view and controller-layers, too. Currently you can model the downstream-
- depedencies using the [Pipeline Build Step](https://wiki.jenkins-ci.org/display/JENKINS/Pipeline+Build+Step+Plugin) but
- this step will always run. What if you've got a fourth dependency, let's say a project for a client that uses your 
- application which depends on both the controller and your views (okay, the MVC-example breaks here, but so what)? 
- In this case, this project will be triggered whenever one of it's upstream projects is completed not just once after 
- both projects are. Another example: let's say you've made a change to the model and to the view-layer. In this case
- you'll want the build of the view-layer to wait until the build of the model-layer has completed and incorporate the
- changes made there. That is what this plugins enables you to do. 
+Let's say you've got a project with the following components:
+
+![
+@startuml
+skinparam handwritten true
+component common
+component model
+component controllers
+component views
+common -- model
+common -- controllers
+common -- views
+model -- controllers
+model -- views
+controllers -- views
+@enduml](http://www.plantuml.com/plantuml/png/NOn13e0W30Jllg8Vu554caY4rfGgtvSW8dBhpkuqxPuEApR2PibbyQf8e7BYid8yc90KoXMP1X3POVWDI8L3G4a3lJpcceiCndnMovFLw6FLxJpgyFtSgmvl)
+
+Each component is built by its own job in Jenkins. Whenever there is a change to the component containing the component
+containing your common utilities or api you'll want to build and test the other components to see that your changes work
+for all of them. Currently you can model the downstream-depedencies using the [Pipeline Build Step](https://wiki.jenkins-ci.org/display/JENKINS/Pipeline+Build+Step+Plugin) or
+or a [Parameterized Trigger](https://plugins.jenkins.io/parameterized-trigger) but this way the downstream projects will
+always be triggered if any upstream-project is completed. In this case the views-component is built three times; the 
+first time when common is completed, the second time and third time when the model and the controller projects are
+completed. This plugin recognizes the dependencies and doesn't trigger the build until the controller-component finishes
+building. 
+Additionally, when you make a change to both the common and the views-component at the same time, it blocks the build of
+the views-component until all it's upstream-dependencies have completed their builds.
+When there are many developers you can configure the plugin so that it recognizes which changes originate from the same
+developer so that the pipeline are run in parallel for each set of changes.
