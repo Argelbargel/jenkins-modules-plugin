@@ -25,6 +25,7 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.Stapler;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -168,6 +169,11 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         @SuppressWarnings("unused") // used by config.jelly
         public List<ActionsPredicateDescriptor> getPredicateDescriptors() {
             return ActionsPredicateDescriptor.getAll();
+        }
+
+        @SuppressWarnings("unused") // used by config.jelly
+        public String getJobName() {
+            return Stapler.getCurrentRequest().findAncestorObject(Job.class).getFullName();
         }
 
         @Restricted(NoExternalUse.class)
