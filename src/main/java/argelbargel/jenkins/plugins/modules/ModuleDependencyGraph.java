@@ -190,7 +190,7 @@ public final class ModuleDependencyGraph {
      * returns {@code true} when the given jobs have a dependency, whether direct or indirect
      */
     public boolean hasDependency(Job src, Job dst) {
-        return getTransitiveUpstream(dst).contains(src) || getTransitiveDownstream(src).contains(dst);
+        return getTransitiveUpstream(dst).contains(src) || getTransitiveDownstream(dst).contains(src);
     }
 
     /**
