@@ -77,13 +77,13 @@ public class ModuleBuildGraph extends AbstractModuleGraph<Run> implements Action
 
     @SuppressWarnings("unchecked")
     @Override
-    protected List<Run> getDownstream(Run payload) throws ExecutionException, InterruptedException {
+    protected List<Run> getDownstream(Run payload, Run target) throws ExecutionException, InterruptedException {
         List<Run> runs = new ArrayList<>();
 
         Job parent = payload.getParent();
         ModuleDependencyGraph dependencyGraph = ModuleDependencyGraph.get();
         for (Job downstream : dependencyGraph.getDownstream(parent)) {
-            if (!dependencyGraph.hasIndirectDependencies(parent, downstream)) {
+            if (isRelevant(downstream, target.getParent()) && !dependencyGraph.hasIndirectDependencies(parent, downstream)) {
                 addTriggeredAndBlockedBuilds(runs, (List<Run<?, ?>>) downstream.getBuilds(), payload);
             }
         }

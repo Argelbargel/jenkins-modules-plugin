@@ -1,11 +1,13 @@
 package argelbargel.jenkins.plugins.modules.graph;
 
 
+import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph;
 import argelbargel.jenkins.plugins.modules.graph.model.Graph;
 import argelbargel.jenkins.plugins.modules.graph.model.GraphType;
 import argelbargel.jenkins.plugins.modules.graph.model.Node;
 import com.google.gson.GsonBuilder;
 import hudson.model.Api;
+import hudson.model.Job;
 import jenkins.model.Jenkins;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -73,13 +75,15 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
         return builder.create().toJson(graph);
     }
 
+    final boolean isRelevant(Job job, Job target) {
+        return job.equals(target) || ModuleDependencyGraph.get().hasDependency(job, target);
+    }
 
-    protected abstract Node<PAYLOAD> createNode(GraphType type, PAYLOAD payload, int index, boolean current);
+    abstract Node<PAYLOAD> createNode(GraphType type, PAYLOAD payload, int index, boolean current);
 
-    protected abstract Collection<PAYLOAD> getRoots();
+    abstract Collection<PAYLOAD> getRoots();
 
-    protected abstract List<PAYLOAD> getDownstream(PAYLOAD payload) throws ExecutionException, InterruptedException;
-
+    abstract List<PAYLOAD> getDownstream(PAYLOAD payload, PAYLOAD target) throws ExecutionException, InterruptedException;
 
     private DirectedGraph<Node<PAYLOAD>, Edge> computeGraph() throws ExecutionException, InterruptedException, ClassNotFoundException, IOException {
         if (graph == null) {
@@ -105,13 +109,11 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
     }
 
     private void computeGraphFrom(Node<PAYLOAD> node) throws ExecutionException, InterruptedException, IOException {
-        for (PAYLOAD downstream : getDownstream(node.payload())) {
-            if (downstream != null) {
-                Node<PAYLOAD> next = getOrCreateNode(downstream);
-                graph.addVertex(next);
-                graph.addEdge(node, next, new Edge(node, next));
-                computeGraphFrom(next);
-            }
+        for (PAYLOAD downstream : getDownstream(node.payload(), payload)) {
+            Node<PAYLOAD> next = getOrCreateNode(downstream);
+            graph.addVertex(next);
+            graph.addEdge(node, next, new Edge(node, next));
+            computeGraphFrom(next);
         }
     }
 

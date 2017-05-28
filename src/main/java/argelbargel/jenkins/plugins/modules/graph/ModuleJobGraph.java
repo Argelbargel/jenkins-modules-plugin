@@ -51,11 +51,11 @@ public final class ModuleJobGraph extends AbstractModuleGraph<Job> implements Ac
     }
 
     @Override
-    protected List<Job> getDownstream(Job payload) throws ExecutionException, InterruptedException {
-        List<Job> downstream = new ArrayList<>();
+    protected List<Job> getDownstream(Job current, Job target) throws ExecutionException, InterruptedException {
         ModuleDependencyGraph dependencyGraph = ModuleDependencyGraph.get();
-        for (Job job : dependencyGraph.getDownstream(payload)) {
-            if (!dependencyGraph.hasIndirectDependencies(payload, job)) {
+        List<Job> downstream = new ArrayList<>();
+        for (Job job : dependencyGraph.getDownstream(current)) {
+            if (isRelevant(job, target) && !dependencyGraph.hasIndirectDependencies(current, job)) {
                 downstream.add(job);
             }
         }

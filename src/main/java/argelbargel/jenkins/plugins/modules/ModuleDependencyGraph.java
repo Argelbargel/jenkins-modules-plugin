@@ -187,6 +187,13 @@ public final class ModuleDependencyGraph {
     }
 
     /**
+     * returns {@code true} when the given jobs have a dependency, whether direct or indirect
+     */
+    public boolean hasDependency(Job src, Job dst) {
+        return getTransitiveUpstream(dst).contains(src) || getTransitiveDownstream(src).contains(dst);
+    }
+
+    /**
      * Returns true if a project has a non-direct dependency to another project.
      * <p>
      * A non-direct dependency is a path of dependency "edge"s from the source to the destination,
