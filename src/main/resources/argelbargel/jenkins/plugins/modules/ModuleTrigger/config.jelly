@@ -4,14 +4,14 @@
         <f:combobox value="${instance.name ?: descriptor.jobName}"/>
     </f:entry>
     <f:entry title="${%Wait for dependencies (seconds)}" field="dependencyWaitInterval">
-        <f:textbox/>
+        <f:textbox default="${descriptor.dependencyWaitInterval}"/>
     </f:entry>
     <f:entry title="${%Trigger downstream when result equal or better than:}" field="triggerWhenResultBetterOrEqualTo">
-        <f:select/>
+        <f:select default="${descriptor.triggerWhenResultBetterOrEqualTo}"/>
     </f:entry>
     <f:entry title="${%Trigger downstream with current build parameters}"
              field="triggerDownstreamWithCurrentParameters">
-        <f:checkbox/>
+        <f:checkbox default="${descriptor.triggerDownstreamWithCurrentParameters}"/>
     </f:entry>
     <f:entry title="${%Dependencies}">
         <f:repeatableProperty field="dependencies"/>

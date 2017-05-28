@@ -16,6 +16,7 @@ import hudson.triggers.TriggerDescriptor;
 import hudson.util.ComboBoxModel;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
@@ -32,6 +33,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static argelbargel.jenkins.plugins.modules.DescriptorUtils.getTriggerWhenResultBetterOrEqualToItems;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.allModules;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.allNames;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildUpstream;
@@ -176,6 +178,26 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
             return Stapler.getCurrentRequest().findAncestorObject(Job.class).getFullName();
         }
 
+        @SuppressWarnings("unused") // used by config.jelly
+        public int getDependencyWaitInterval() {
+            return getDefaults().getDependencyWaitInterval();
+        }
+
+        @SuppressWarnings("unused") // used by config.jelly
+        public String getTriggerWhenResultBetterOrEqualTo() {
+            return getDefaults().getTriggerWhenResultBetterOrEqualTo();
+        }
+
+        @SuppressWarnings("unused") // used by config.jelly
+        public boolean getTriggerDownstreamWithCurrentParameters() {
+            return getDefaults().getTriggerDownstreamWithCurrentParameters();
+        }
+
+        private ModuleDefaults getDefaults() {
+            return Jenkins.getInstance().getDescriptorByType(ModuleDefaults.class);
+        }
+
+
         @Restricted(NoExternalUse.class)
         @SuppressWarnings("unused") // used by config.jelly
         public FormValidation doCheckName(@QueryParameter String name, @AncestorInPath Job context) {
@@ -203,11 +225,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         @Restricted(NoExternalUse.class)
         @SuppressWarnings("unused") // used by config.jelly
         public ListBoxModel doFillTriggerWhenResultBetterOrEqualToItems() {
-            ListBoxModel model = new ListBoxModel();
-            model.add(Result.SUCCESS.toString());
-            model.add(Result.UNSTABLE.toString());
-            model.add(Result.FAILURE.toString());
-            return model;
+            return getTriggerWhenResultBetterOrEqualToItems();
         }
     }
 }

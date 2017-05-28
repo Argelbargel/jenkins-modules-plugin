@@ -1,0 +1,16 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:section title="Default Settings for Modules">
+        <f:entry title="${%Wait for dependencies (seconds)}" field="dependencyWaitInterval">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="${%Trigger downstream when result equal or better than:}"
+                 field="triggerWhenResultBetterOrEqualTo">
+            <f:select/>
+        </f:entry>
+        <f:entry title="${%Trigger downstream with current build parameters}"
+                 field="triggerDownstreamWithCurrentParameters">
+            <f:checkbox/>
+        </f:entry>
+    </f:section>
+</j:jelly>
