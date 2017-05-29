@@ -16,22 +16,6 @@ import static argelbargel.jenkins.plugins.modules.predicates.Actions.create;
 
 
 public abstract class ActionsPredicate extends AbstractDescribableImpl<ActionsPredicate> implements ExtensionPoint, Serializable {
-    @SuppressWarnings({"unused"}) // part of public API
-    public static final ActionsPredicate ANY = new ActionsPredicate() {
-        @Override
-        public boolean test(@Nonnull Actions reason, @Nonnull Actions subject) {
-            return true;
-        }
-    };
-
-    @SuppressWarnings("WeakerAccess") // part of public API
-    public static final ActionsPredicate NONE = new ActionsPredicate() {
-        @Override
-        public boolean test(@Nonnull Actions reason, @Nonnull Actions subject) {
-            return false;
-        }
-    };
-
     public static <SUBJECT extends Actionable> SUBJECT find(ActionsPredicate predicate, Actionable reason, Iterable<SUBJECT> items) {
         return find(predicate, create(reason), items);
     }
