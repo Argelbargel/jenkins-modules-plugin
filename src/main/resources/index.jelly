@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?jelly escape-by-default='true'?>
 <div>
-    Allows you to create a build-pipeline of interdependent jobs.
+    This plugin allows you to create a build-pipeline of interdependent jenkins jobs.
 </div>
