@@ -1,15 +1,15 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <f:entry title="${%Name}" field="name">
+    <f:entry title="${%Module-Name}" field="name">
         <f:combobox value="${instance.name ?: descriptor.jobName}"/>
     </f:entry>
     <f:entry title="${%Upstream dependencies}">
         <f:repeatableProperty field="dependencies"/>
     </f:entry>
-    <f:entry title="${%Wait for upstream dependencies}" field="dependencyWaitInterval">
+    <f:entry title="${%Builds wait for upstream}" field="dependencyWaitInterval">
         <f:textbox default="${descriptor.dependencyWaitInterval}"/>
     </f:entry>
-    <f:entry title="${%Block downstream when}" field="predicates">
+    <f:entry title="${%Builds are blocked by upstream when}" field="predicates">
         <f:hetero-list name="predicates" items="${instance.predicates}" hasHeader="true"
                        descriptors="${descriptor.predicateDescriptors}"
                        targetType="${argelbargel.jenkins.plugins.modules.predicates.QueuePredicate.class}"/>
