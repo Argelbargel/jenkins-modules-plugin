@@ -3,8 +3,16 @@
     <f:entry title="${%Name}" field="name">
         <f:combobox value="${instance.name ?: descriptor.jobName}"/>
     </f:entry>
-    <f:entry title="${%Wait for dependencies (seconds)}" field="dependencyWaitInterval">
+    <f:entry title="${%Upstream dependencies}">
+        <f:repeatableProperty field="dependencies"/>
+    </f:entry>
+    <f:entry title="${%Wait for upstream dependencies}" field="dependencyWaitInterval">
         <f:textbox default="${descriptor.dependencyWaitInterval}"/>
+    </f:entry>
+    <f:entry title="${%Block downstream when}" field="predicates">
+        <f:hetero-list name="predicates" items="${instance.predicates}" hasHeader="true"
+                       descriptors="${descriptor.predicateDescriptors}"
+                       targetType="${argelbargel.jenkins.plugins.modules.predicates.QueuePredicate.class}"/>
     </f:entry>
     <f:entry title="${%Trigger downstream when result equal or better than:}" field="triggerWhenResultBetterOrEqualTo">
         <f:select default="${descriptor.triggerWhenResultBetterOrEqualTo}"/>
@@ -12,13 +20,5 @@
     <f:entry title="${%Trigger downstream with current build parameters}"
              field="triggerDownstreamWithCurrentParameters">
         <f:checkbox default="${descriptor.triggerDownstreamWithCurrentParameters}"/>
-    </f:entry>
-    <f:entry title="${%Dependencies}">
-        <f:repeatableProperty field="dependencies"/>
-    </f:entry>
-    <f:entry title="${%Predicates}" field="predicates">
-        <f:hetero-list name="predicates" items="${instance.predicates}" hasHeader="true"
-                       descriptors="${descriptor.predicateDescriptors}"
-                       targetType="${argelbargel.jenkins.plugins.modules.predicates.QueuePredicate.class}"/>
     </f:entry>
 </j:jelly>
