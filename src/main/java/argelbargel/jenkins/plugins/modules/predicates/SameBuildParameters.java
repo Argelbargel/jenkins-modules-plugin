@@ -20,7 +20,7 @@ public class SameBuildParameters extends SingleActionPredicate<ParametersAction>
 
     @Override
     protected boolean test(ParametersAction reason, ParametersAction subject) {
-        return reason != null && subject != null && reason.getParameters().size() == subject.getParameters().size() && test(reason.getParameters(), subject);
+        return reason.getParameters().size() == subject.getParameters().size() && test(reason.getParameters(), subject);
     }
 
     private boolean test(List<ParameterValue> reasonParameters, ParametersAction subject) {
@@ -43,5 +43,4 @@ public class SameBuildParameters extends SingleActionPredicate<ParametersAction>
             return "Started with the same parameters";
         }
     }
-
 }
