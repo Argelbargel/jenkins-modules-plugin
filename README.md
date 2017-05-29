@@ -13,12 +13,17 @@ First and foremost, this plugin uses its own mechanism to track relationships be
 job type. This means you can declare relationships for any job (like pipeline jobs ([WorkflowJob](http://javadoc.jenkins.io/plugin/workflow-job/org/jenkinsci/plugins/workflow/job/WorkflowJob.html)s) for example),
 not just old-style-projects ([AbstractProject](http://javadoc.jenkins-ci.org/hudson/model/AbstractProject.html)s).
 Second, it uses its own namespace for the relationships, so you do not have to rely on the name of the job but can use 
-any naming-scheme that suits your build-system (e.g. gradle-project-names, maven-artifact-ids).
+any naming-scheme that suits your build-system (e.g. maven/gradle artifact ids).
 Third, it allows you the define conditional relationships; this means downstream-projects are only blocked if both the 
-upstream- and downstream-projects share some attribute (e.g., they were started by the same user, triggered by the same
+upstream- and downstream-projects share some attribute (e.g.,they were started by the same user, triggered by the same
 upstream-project).
- 
-### I still don't get it. What made you built it?
+
+### Okay, but why "modules"? Basically it's a plugin to build pipelines of jobs, isn't it?
+
+Yes, this plugin is about building pipelines which span/consist of jenkins jobs. Unfortunally all the appropriate terms like pipeline, stage etc.  have their specific meanings since the advent of the [Pipeline Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Pipeline+Plugin). Additionally, most older plugins containing the term "pipeline" (e.g. the [Build Pipeline Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Build+Pipeline+Plugin) rely on Jenkins' builtin dependency-tracking mechanism which is restricted to old-style projects and will not work for jobs using the new pipeline.
+Thus i've tried to find a term which expresses that this plugin spans jobs (which by themself use a pipeline-script consisting of stages which might run on jenkins nodes) and is independent of of the known mechanism tracking project-dependencies. "Modules" is the best i came up with as a non-native english speaker. If you have suggestions for a better term, i'll appreciate it.
+
+### An example usecase, please?
 
 Let's say you've got a project with the following components:
 
