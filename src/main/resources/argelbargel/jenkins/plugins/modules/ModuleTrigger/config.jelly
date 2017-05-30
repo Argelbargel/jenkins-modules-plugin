@@ -12,7 +12,7 @@
     <f:entry title="${%Builds are blocked by upstream when}" field="predicates">
         <f:hetero-list name="predicates" items="${instance.predicates}" hasHeader="true"
                        descriptors="${descriptor.predicateDescriptors}"
-                       targetType="${argelbargel.jenkins.plugins.modules.predicates.QueuePredicate.class}"/>
+                       targetType="${argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate.class}"/>
     </f:entry>
     <f:entry title="${%Trigger downstream when result equal or better than:}" field="triggerWhenResultBetterOrEqualTo">
         <f:select default="${descriptor.triggerWhenResultBetterOrEqualTo}"/>

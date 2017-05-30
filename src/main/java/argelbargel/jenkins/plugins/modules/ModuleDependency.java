@@ -1,127 +1,94 @@
 package argelbargel.jenkins.plugins.modules;
 
 
-import hudson.Extension;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.Descriptor;
+import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter;
 import hudson.model.Job;
-import hudson.util.ComboBoxModel;
-import hudson.util.FormValidation;
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.accmod.Restricted;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
+import hudson.model.ParametersAction;
+import hudson.model.Result;
+import hudson.model.Run;
 
-import javax.annotation.Nonnull;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
-import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildDownstream;
-import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildUpstream;
-import static argelbargel.jenkins.plugins.modules.ModuleUtils.findModule;
 
+public final class ModuleDependency {
+    private final Result triggerResult;
+    private final List<TriggerParameter> triggerParameters;
+    private final Job upstream;
+    private final Job downstream;
+    private final boolean triggerBuildWithCurrentParameters;
 
-public final class ModuleDependency extends AbstractDescribableImpl<ModuleDependency> implements Serializable {
-    static List<ModuleDependency> wrap(Set<String> names) {
-        List<ModuleDependency> dependencies = new ArrayList<>(names.size());
-        for (String name : names) {
-            dependencies.add(new ModuleDependency(name));
+    ModuleDependency(Job<?, ?> upstream, Job<?, ?> downstream, Result result, List<TriggerParameter> parameters, boolean triggerWithCurrentParameters) {
+        this.upstream = upstream;
+        this.downstream = downstream;
+        this.triggerBuildWithCurrentParameters = triggerWithCurrentParameters;
+        this.triggerResult = result;
+        this.triggerParameters = parameters;
+    }
+
+    public boolean shouldTriggerBuild(Run<?, ?> build) {
+        return shouldTriggerDownstream(build.getResult(), build.getAction(ParametersAction.class)) && willNotBlock();
+    }
+
+    private boolean shouldTriggerDownstream(Result result, ParametersAction parameters) {
+        return result.isBetterOrEqualTo(triggerResult) && shouldTriggerDownstream(parameters);
+    }
+
+    private boolean shouldTriggerDownstream(ParametersAction parameters) {
+        for (TriggerParameter t : triggerParameters) {
+            if (!t.test(parameters)) {
+                return false;
+            }
         }
 
-        return dependencies;
+        return true;
     }
 
-    static Set<String> unwrap(List<ModuleDependency> dependencies) {
-        Set<String> names = new LinkedHashSet<>(dependencies.size());
-        for (ModuleDependency dependency : dependencies) {
-            names.add(dependency.getName());
-        }
-
-        return names;
+    @SuppressWarnings("unchecked")
+    private boolean willNotBlock() {
+        List<Job> downstream = ModuleDependencyGraph.get().getDownstream(getUpstreamJob());
+        Set<Job> upstream = ModuleDependencyGraph.get().getTransitiveUpstream(getDownstreamJob());
+        upstream.remove(getUpstreamJob());
+        downstream.retainAll(upstream);
+        return downstream.isEmpty();
     }
 
-    private final String name;
-
-    @DataBoundConstructor
-    @Restricted(NoExternalUse.class)
-    public ModuleDependency(String name) {
-        this.name = name;
+    @SuppressWarnings("WeakerAccess") // part of public API
+    public final Job getUpstreamJob() {
+        return upstream;
     }
 
-    public String getName() {
-        return name;
+    public final Job getDownstreamJob() {
+        return downstream;
     }
 
-    public Job<?, ?> getJob() {
-        ModuleAction module = ModuleAction.get(getName());
-        return module != null ? module.getJob() : null;
+    public final boolean shouldTriggerBuildWithCurrentParameters() {
+        return triggerBuildWithCurrentParameters;
     }
 
     @Override
-    public String toString() {
-        return name;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof ModuleDependency)) {
+    public final boolean equals(Object obj) {
+        if (obj == null) {
             return false;
         }
-        ModuleDependency module = (ModuleDependency) o;
-        return Objects.equals(name, module.name);
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+
+        final ModuleDependency that = (ModuleDependency) obj;
+        return this.upstream == that.upstream || this.downstream == that.downstream;
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(name);
+    public final int hashCode() {
+        int hash = 7;
+        hash = 23 * hash + this.upstream.hashCode();
+        hash = 23 * hash + this.downstream.hashCode();
+        return hash;
     }
 
-
-    @Extension
-    public static class DependencyDescriptor extends Descriptor<ModuleDependency> {
-        @Nonnull
-        @Override
-        public String getDisplayName() {
-            return "Dependency";
-        }
-
-        @Restricted(NoExternalUse.class)
-        @SuppressWarnings("unused") // used by config.jelly
-        public FormValidation doCheckName(@QueryParameter String name, @AncestorInPath Job context) {
-            if (StringUtils.isBlank(name)) {
-                return FormValidation.error("module name must not be blank");
-            }
-
-            if (buildUpstream(name).contains(findModule(context))) {
-                return FormValidation.error("circular dependency between this module and " + name);
-            }
-
-            return FormValidation.ok();
-        }
-
-        @Restricted(NoExternalUse.class)
-        @SuppressWarnings("unused") // used by config.jelly
-        public ComboBoxModel doFillNameItems(@AncestorInPath Job context) {
-            Set<String> names = new HashSet<>(ModuleUtils.allNames());
-
-            String current = findModule(context);
-            if (current != null) {
-                names.remove(current);
-                names.removeAll(buildDownstream(current));
-                names.removeAll(buildUpstream(current));
-            }
-
-            return new ComboBoxModel(names);
-        }
+    @Override
+    public final String toString() {
+        return super.toString() + "[" + upstream + "->" + downstream + "]";
     }
 }

@@ -1,7 +1,7 @@
 package argelbargel.jenkins.plugins.modules.queue;
 
 
-import argelbargel.jenkins.plugins.modules.ModuleAction;
+import argelbargel.jenkins.plugins.modules.ModuleTrigger;
 import hudson.Extension;
 import hudson.model.Job;
 import hudson.model.Run;
@@ -19,18 +19,17 @@ public final class ModuleRunListener extends RunListener<Run<?, ?>> {
     }
 
     private void onCompleted(Run<?, ?> run, Job<?, ?> job, TaskListener listener) {
-        ModuleAction module = ModuleAction.get(job);
-        if (module != null) {
-            onCompleted(run, module, listener);
+        ModuleTrigger trigger = ModuleTrigger.get(job);
+        if (trigger != null) {
+            onCompleted(run, trigger, listener);
         }
     }
 
-    private void onCompleted(Run<?, ?> run, ModuleAction module, TaskListener listener) {
-        if (module.mustCancelDownstream(run.getResult())) {
+    private void onCompleted(Run<?, ?> run, ModuleTrigger trigger, TaskListener listener) {
+        if (trigger.mustCancelDownstream(run.getResult())) {
             ModuleBlockedAction.cancelItemsBlockedBy(run);
         } else {
-            DownstreamTrigger.triggerDownstream(run, module.getTriggerDownstreamWithCurrentParameters(), listener);
+            DownstreamTrigger.triggerDownstream(run, listener);
         }
-
     }
 }

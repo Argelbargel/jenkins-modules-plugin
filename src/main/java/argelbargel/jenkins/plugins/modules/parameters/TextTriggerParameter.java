@@ -2,33 +2,35 @@ package argelbargel.jenkins.plugins.modules.parameters;
 
 
 import hudson.Extension;
-import hudson.model.BooleanParameterDefinition;
+import hudson.model.ChoiceParameterDefinition;
 import hudson.model.ParameterDefinition;
+import hudson.model.StringParameterDefinition;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
+import java.util.Arrays;
 
 
 @SuppressWarnings("unused") // extension
-public class BooleanTriggerParameter extends TriggerParameter {
-    private final Boolean expected;
+public class TextTriggerParameter extends TriggerParameter {
+    private final String expected;
 
     @DataBoundConstructor
-    public BooleanTriggerParameter(String name, Boolean expected) {
+    public TextTriggerParameter(String name, String expected) {
         super(name);
         this.expected = expected;
     }
 
     @SuppressWarnings("WeakerAccess") // used in config.jelly
-    public Boolean getExpected() {
+    public String getExpected() {
         return expected;
     }
 
     @Override
     protected boolean test(Object value) {
-        return value != null ? Boolean.valueOf(value.toString()).equals(expected) : !expected;
+        return value != null ? value.toString().equals(expected) : StringUtils.isEmpty(expected);
     }
 
     @Override
@@ -36,18 +38,18 @@ public class BooleanTriggerParameter extends TriggerParameter {
         return getName() + "=" + getExpected();
     }
 
-
     @Extension
-    @Symbol("booleanTriggerParameter")
+    @Symbol("textTriggerParameter")
     public static class DescriptorImpl extends TriggerParameterDescriptor {
         public DescriptorImpl() {
-            super(Collections.<Class<? extends ParameterDefinition>>singleton(BooleanParameterDefinition.class));
+            super(Arrays.<Class<? extends ParameterDefinition>>asList(StringParameterDefinition.class, ChoiceParameterDefinition.class));
         }
 
         @Nonnull
         @Override
         public String getDisplayName() {
-            return "Boolean Parameter";
+            return "Text Parameter";
         }
     }
+
 }

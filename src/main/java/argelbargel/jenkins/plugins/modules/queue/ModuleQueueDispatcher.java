@@ -4,7 +4,7 @@ package argelbargel.jenkins.plugins.modules.queue;
 import argelbargel.jenkins.plugins.modules.Messages;
 import argelbargel.jenkins.plugins.modules.ModuleAction;
 import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph;
-import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
+import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate;
 import hudson.Extension;
 import hudson.model.Job;
 import hudson.model.Queue.Item;
@@ -17,8 +17,8 @@ import jenkins.model.Jenkins;
 import java.util.Collection;
 import java.util.logging.Logger;
 
-import static argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate.find;
 import static argelbargel.jenkins.plugins.modules.queue.RunUtils.getUncompletedRuns;
+import static argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate.filter;
 
 
 @Extension
@@ -47,16 +47,16 @@ public final class ModuleQueueDispatcher extends QueueTaskDispatcher {
         return canRun(waiting, ModuleDependencyGraph.get().getTransitiveUpstream(job), module.getPredicate());
     }
 
-    private CauseOfBlockage canRun(Item waiting, Collection<Job> upstream, ActionsPredicate predicate) {
+    private CauseOfBlockage canRun(Item waiting, Collection<Job> upstream, QueuePredicate predicate) {
         for (Job<?, ?> job : upstream) {
-            Item item = find(predicate, waiting, Jenkins.getInstance().getQueue().getItems((Task) job));
+            Item item = filter(predicate, waiting, Jenkins.getInstance().getQueue().getItems((Task) job));
             if (item != null) {
                 LOGGER.info(job.getFullDisplayName() + " is blocked by " + item.task.getFullDisplayName());
                 ModuleBlockedAction.block(waiting, item);
                 return CauseOfBlockage.fromMessage(Messages._ModuleQueueDispatcher_blockedByUpstream(item.task.getFullDisplayName()));
             }
 
-            Run<?, ?> run = find(predicate, waiting, getUncompletedRuns(job));
+            Run<?, ?> run = filter(predicate, waiting, getUncompletedRuns(job));
             if (run != null) {
                 LOGGER.info(job.getFullDisplayName() + " is blocked by " + run.getDisplayName());
                 ModuleBlockedAction.block(waiting, run);

@@ -1,25 +1,24 @@
 package argelbargel.jenkins.plugins.modules;
 
 
-import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph.Dependency;
 import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter;
 import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter.TriggerParameterDescriptor;
-import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
-import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate.ActionsPredicateDescriptor;
+import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate;
+import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate.ActionsPredicateDescriptor;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Item;
 import hudson.model.Job;
-import hudson.model.ParametersAction;
 import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.TaskListener;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.ComboBoxModel;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import hudson.util.XStream2;
 import jenkins.model.Jenkins;
+import jenkins.model.ParameterizedJobMixIn;
 import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
@@ -42,16 +41,29 @@ import static argelbargel.jenkins.plugins.modules.ModuleUtils.allNames;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildUpstream;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.findProject;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.moduleExists;
+import static hudson.model.Result.SUCCESS;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 
 public final class ModuleTrigger extends Trigger<ParameterizedJob> {
+    public static ModuleTrigger get(Job job) {
+        return ParameterizedJobMixIn.getTrigger(job, ModuleTrigger.class);
+    }
+
     private final ModuleAction action;
+    private String triggerResult;
+    private boolean triggerDownstreamWithCurrentParameters;
+    private List<TriggerParameter> triggerParameters;
+
 
     @DataBoundConstructor
     public ModuleTrigger(String name) {
         super();
         this.action = new ModuleAction(name);
+        this.triggerResult = SUCCESS.toString();
+        this.triggerParameters = emptyList();
+        this.triggerDownstreamWithCurrentParameters = false;
     }
 
     public String getName() {
@@ -59,13 +71,13 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     }
 
     @SuppressWarnings("unused") // used by config.jelly
-    public Collection<ModuleDependency> getDependencies() {
-        return ModuleDependency.wrap(action.getDependencies());
+    public Collection<UpstreamDependencyDescribable> getDependencies() {
+        return UpstreamDependencyDescribable.wrap(action.getDependencies());
     }
 
     @DataBoundSetter
-    public void setDependencies(List<ModuleDependency> deps) {
-        action.setDependencies(ModuleDependency.unwrap(deps));
+    public void setDependencies(List<UpstreamDependencyDescribable> deps) {
+        action.setDependencies(UpstreamDependencyDescribable.unwrap(deps));
     }
 
 
@@ -81,50 +93,42 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
 
     @SuppressWarnings("unused") // used by config.jelly
     public String getTriggerWhenResultBetterOrEqualTo() {
-        return action.getTriggerResult().toString();
+        return triggerResult;
     }
 
     @DataBoundSetter
     public void setTriggerWhenResultBetterOrEqualTo(String result) {
-        action.setTriggerResult(Result.fromString(result));
+        triggerResult = result;
     }
 
-    public List<ActionsPredicate> getPredicates() {
+    public List<QueuePredicate> getPredicates() {
         return action.getPredicates();
     }
 
 
     @DataBoundSetter
-    public void setPredicates(List<ActionsPredicate> predicates) {
+    public void setPredicates(List<QueuePredicate> predicates) {
         action.setPredicates(predicates);
     }
 
     @DataBoundSetter
     public void setTriggerDownstreamWithCurrentParameters(boolean value) {
-        action.setTriggerDownstreamWithCurrentParameters(value);
+        triggerDownstreamWithCurrentParameters = value;
     }
 
     @SuppressWarnings("unused") // used by config.jelly
     public boolean getTriggerDownstreamWithCurrentParameters() {
-        return action.getTriggerDownstreamWithCurrentParameters();
+        return triggerDownstreamWithCurrentParameters;
     }
 
     @DataBoundSetter
     public void setTriggerParameters(List<TriggerParameter> parameters) {
-        action.setTriggerParameters(parameters);
+        triggerParameters = parameters;
     }
 
+    @SuppressWarnings("unused") // used by config.jelly
     public List<TriggerParameter> getTriggerParameters() {
-        return action.getTriggerParameters();
-    }
-
-    void buildDependencyGraph(Job<?, ?> owner, ModuleDependencyGraph graph) {
-        for (String dependency : action.getDependencies()) {
-            ModuleAction module = ModuleAction.get(dependency);
-            if (module != null) {
-                graph.addDependency(new DependencyImpl(module.getJob(), owner));
-            }
-        }
+        return triggerParameters;
     }
 
     @Override
@@ -144,24 +148,16 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         return singletonList(action);
     }
 
-    private static class DependencyImpl extends Dependency {
-        DependencyImpl(Job<?, ?> upstream, Job<?, ?> downstream) {
-            super(upstream, downstream);
-        }
+    public boolean mustCancelDownstream(Result result) {
+        return result.isWorseThan(Result.fromString(triggerResult));
+    }
 
-        @Override
-        public boolean shouldTriggerBuild(Run<?, ?> build, TaskListener listener, List<Action> actions) {
-            ModuleAction module = ModuleAction.get(getUpstreamJob());
-            return module.shouldTriggerDownstream(build.getResult(), build.getAction(ParametersAction.class)) && willNotBlock();
-        }
-
-        @SuppressWarnings("unchecked")
-        private boolean willNotBlock() {
-            List<Job> downstream = ModuleDependencyGraph.get().getDownstream(getUpstreamJob());
-            Set<Job> upstream = ModuleDependencyGraph.get().getTransitiveUpstream(getDownstreamJob());
-            upstream.remove(getUpstreamJob());
-            downstream.retainAll(upstream);
-            return downstream.isEmpty();
+    void buildDependencyGraph(ModuleDependencyGraph graph, Job<?, ?> owner) {
+        for (String dependency : action.getDependencies()) {
+            ModuleAction module = ModuleAction.get(dependency);
+            if (module != null) {
+                graph.addDependency(new ModuleDependency(module.getJob(), owner, Result.fromString(triggerResult), triggerParameters, triggerDownstreamWithCurrentParameters));
+            }
         }
     }
 
@@ -211,8 +207,8 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
             return getDefaults().getTriggerDownstreamWithCurrentParameters();
         }
 
-        private ModuleDefaults getDefaults() {
-            return Jenkins.getInstance().getDescriptorByType(ModuleDefaults.class);
+        private ModuleTriggerDefaults getDefaults() {
+            return Jenkins.getInstance().getDescriptorByType(ModuleTriggerDefaults.class);
         }
 
 
@@ -244,6 +240,24 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         @SuppressWarnings("unused") // used by config.jelly
         public ListBoxModel doFillTriggerWhenResultBetterOrEqualToItems() {
             return getTriggerWhenResultBetterOrEqualToItems();
+        }
+    }
+
+
+    @Deprecated // >= 0.8
+    @SuppressWarnings({"deprecation", "unused"})
+    public static final class ConverterImpl extends XStream2.PassthruConverter<ModuleTrigger> {
+        public ConverterImpl(XStream2 xstream) {
+            super(xstream);
+        }
+
+        @Override
+        protected void callback(ModuleTrigger obj, UnmarshallingContext context) {
+            if (obj.triggerResult == null) {
+                obj.triggerResult = obj.action.triggerResult.toString();
+                obj.triggerDownstreamWithCurrentParameters = obj.action.triggerDownstreamWithCurrentParameters;
+                obj.triggerParameters = emptyList();
+            }
         }
     }
 }

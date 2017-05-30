@@ -2,7 +2,7 @@ package argelbargel.jenkins.plugins.modules.queue;
 
 
 import argelbargel.jenkins.plugins.modules.ModuleAction;
-import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
+import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate;
 import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Actionable;
@@ -15,7 +15,7 @@ import jenkins.model.Jenkins;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate.find;
+import static argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate.filter;
 
 
 @Extension
@@ -31,9 +31,9 @@ public final class ModuleQueueDecisionHandler extends QueueDecisionHandler {
         return module == null || shouldSchedule(task, module.getPredicate(), actions);
     }
 
-    private boolean shouldSchedule(Task task, ActionsPredicate predicate, List<Action> actions) {
+    private boolean shouldSchedule(Task task, QueuePredicate predicate, List<Action> actions) {
         // only schedule new build when there's no matching build already queued
-        Item queued = find(predicate, actions, Jenkins.getInstance().getQueue().getItems(task));
+        Item queued = filter(predicate, actions, Jenkins.getInstance().getQueue().getItems(task));
         if (queued != null) {
             LOGGER.info("will not schedule " + task.getFullDisplayName() + " as " + queued.task.getFullDisplayName() + " is already queued");
             foldActionsInto(queued, actions);

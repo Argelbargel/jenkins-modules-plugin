@@ -2,8 +2,8 @@ package argelbargel.jenkins.plugins.modules.queue;
 
 
 import argelbargel.jenkins.plugins.modules.Messages;
+import argelbargel.jenkins.plugins.modules.ModuleDependency;
 import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph;
-import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph.Dependency;
 import hudson.console.ModelHyperlinkNote;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
@@ -40,23 +40,23 @@ import static argelbargel.jenkins.plugins.modules.queue.RunUtils.getUncompletedR
  * @see hudson.tasks.BuildTrigger
  */
 class DownstreamTrigger {
-    static void triggerDownstream(Run<?, ?> reason, boolean withCurrentParameters, TaskListener listener) {
-        execute(reason, reason.getParent(), withCurrentParameters, listener);
+    static void triggerDownstream(Run<?, ?> reason, TaskListener listener) {
+        execute(reason, reason.getParent(), listener);
     }
 
-    private static void execute(Run<?, ?> reason, Job<?, ?> job, boolean withCurrentParameters, TaskListener listener) {
-        List<Dependency> downstream = ModuleDependencyGraph.get().getDownstreamDependencies(job);
+    private static void execute(Run<?, ?> reason, Job<?, ?> job, TaskListener listener) {
+        List<ModuleDependency> downstream = ModuleDependencyGraph.get().getDownstreamDependencies(job);
         Authentication auth = checkAuth(downstream, listener.getLogger());
-        execute(reason, withCurrentParameters, downstream, auth, listener);
+        execute(reason, downstream, auth, listener);
     }
 
-    private static void execute(Run<?, ?> reason, boolean withCurrentParameters, List<Dependency> downstream, Authentication auth, TaskListener listener) {
-        for (Dependency dep : downstream) {
+    private static void execute(Run<?, ?> reason, List<ModuleDependency> downstream, Authentication auth, TaskListener listener) {
+        for (ModuleDependency dep : downstream) {
             List<Action> buildActions = new ArrayList<>();
             SecurityContext orig = ACL.impersonate(auth);
             try {
-                if (isNotAlreadyRunning(dep, reason, listener) && dep.shouldTriggerBuild(reason, listener, buildActions)) {
-                    buildActions.addAll(createBuildActions(reason, withCurrentParameters));
+                if (isNotAlreadyRunning(dep, reason, listener) && dep.shouldTriggerBuild(reason)) {
+                    buildActions.addAll(createBuildActions(reason, dep.shouldTriggerBuildWithCurrentParameters()));
                     execute(dep.getDownstreamJob(), buildActions.toArray(new Action[buildActions.size()]), listener.getLogger());
                 }
             } finally {
@@ -66,7 +66,7 @@ class DownstreamTrigger {
 
     }
 
-    private static boolean isNotAlreadyRunning(Dependency dep, Run<?, ?> reason, TaskListener listener) {
+    private static boolean isNotAlreadyRunning(ModuleDependency dep, Run<?, ?> reason, TaskListener listener) {
         return isNotAlreadyRunning(dep.getDownstreamJob(), reason, listener.getLogger());
     }
 
@@ -130,7 +130,7 @@ class DownstreamTrigger {
         return true;
     }
 
-    private static Authentication checkAuth(List<Dependency> downstream, PrintStream logger) {
+    private static Authentication checkAuth(List<ModuleDependency> downstream, PrintStream logger) {
         Authentication auth = Jenkins.getAuthentication(); // from build
         if (auth.equals(ACL.SYSTEM)) { // i.e., unspecified
             if (QueueItemAuthenticatorDescriptor.all().isEmpty()) {

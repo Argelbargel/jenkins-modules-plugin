@@ -3,13 +3,9 @@ package argelbargel.jenkins.plugins.modules;
 
 import hudson.init.InitMilestone;
 import hudson.init.Initializer;
-import hudson.model.Action;
 import hudson.model.Job;
-import hudson.model.Run;
-import hudson.model.TaskListener;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
-import jenkins.model.ParameterizedJobMixIn;
 import jenkins.util.DirectedGraph;
 import org.acegisecurity.context.SecurityContext;
 import org.acegisecurity.context.SecurityContextHolder;
@@ -49,8 +45,8 @@ import static java.util.Collections.singleton;
  * @see hudson.model.DependencyGraph
  */
 public final class ModuleDependencyGraph {
-    private static final Comparator<Dependency> COMPARE_DEPENDENCIES_BY_NAME = new Comparator<Dependency>() {
-        public int compare(Dependency lhs, Dependency rhs) {
+    private static final Comparator<ModuleDependency> COMPARE_DEPENDENCIES_BY_NAME = new Comparator<ModuleDependency>() {
+        public int compare(ModuleDependency lhs, ModuleDependency rhs) {
             int cmp = lhs.getUpstreamJob().getName().compareTo(rhs.getUpstreamJob().getName());
             return cmp != 0 ? cmp : lhs.getDownstreamJob().getName().compareTo(rhs.getDownstreamJob().getName());
         }
@@ -76,9 +72,9 @@ public final class ModuleDependencyGraph {
 
     private static ModuleDependencyGraph build(ModuleDependencyGraph graph) {
         for (Job job : Jenkins.getInstance().getAllItems(Job.class)) {
-            ModuleTrigger trigger = ParameterizedJobMixIn.getTrigger(job, ModuleTrigger.class);
+            ModuleTrigger trigger = ModuleTrigger.get(job);
             if (trigger != null) {
-                trigger.buildDependencyGraph(job, graph);
+                trigger.buildDependencyGraph(graph, job);
             }
         }
 
@@ -94,8 +90,8 @@ public final class ModuleDependencyGraph {
     }
 
 
-    private final Map<Job, Set<Dependency>> forward;
-    private final Map<Job, Set<Dependency>> backward;
+    private final Map<Job, Set<ModuleDependency>> forward;
+    private final Map<Job, Set<ModuleDependency>> backward;
     private Comparator<Job<?, ?>> topologicalOrder;
 
 
@@ -126,15 +122,15 @@ public final class ModuleDependencyGraph {
         return roots;
     }
 
-    public List<Dependency> getDownstreamDependencies(Job<?, ?> job) {
+    public List<ModuleDependency> getDownstreamDependencies(Job<?, ?> job) {
         if (!forward.containsKey(job)) {
             return emptyList();
         }
 
-        List<Dependency> downstream = new ArrayList<>(forward.get(job));
+        List<ModuleDependency> downstream = new ArrayList<>(forward.get(job));
         // Sort topologically
-        Collections.sort(downstream, new Comparator<ModuleDependencyGraph.Dependency>() {
-            public int compare(ModuleDependencyGraph.Dependency lhs, ModuleDependencyGraph.Dependency rhs) {
+        Collections.sort(downstream, new Comparator<ModuleDependency>() {
+            public int compare(ModuleDependency lhs, ModuleDependency rhs) {
                 // Swapping lhs/rhs to get reverse sort:
                 return topologicalOrder.compare(rhs.getDownstreamJob(), lhs.getDownstreamJob());
             }
@@ -224,23 +220,23 @@ public final class ModuleDependencyGraph {
     /**
      * Called during the dependency graph build phase to add a dependency edge.
      */
-    void addDependency(Dependency dep) {
+    void addDependency(ModuleDependency dep) {
         add(forward, dep.getUpstreamJob(), dep);
         add(backward, dep.getDownstreamJob(), dep);
     }
 
-    private boolean hasDependencies(Map<Job, Set<Dependency>> map, Job job) {
+    private boolean hasDependencies(Map<Job, Set<ModuleDependency>> map, Job job) {
         return map.containsKey(job);
     }
 
-    private List<Job> get(Map<Job, Set<Dependency>> map, Job src, boolean up) {
+    private List<Job> get(Map<Job, Set<ModuleDependency>> map, Job src, boolean up) {
         if (!map.containsKey(src)) {
             return emptyList();
         }
 
-        Set<Dependency> v = map.get(src);
+        Set<ModuleDependency> v = map.get(src);
         List<Job> result = new ArrayList<>(v.size());
-        for (Dependency d : v) {
+        for (ModuleDependency d : v) {
             result.add(up ? d.getUpstreamJob() : d.getDownstreamJob());
         }
 
@@ -248,7 +244,7 @@ public final class ModuleDependencyGraph {
     }
 
 
-    private Set<Job> getTransitive(Map<Job, Set<Dependency>> direction, Job src, boolean up) {
+    private Set<Job> getTransitive(Map<Job, Set<ModuleDependency>> direction, Job src, boolean up) {
         Set<Job> visited = new HashSet<>();
         Stack<Job> queue = new Stack<>();
 
@@ -267,8 +263,8 @@ public final class ModuleDependencyGraph {
         return visited;
     }
 
-    private void add(Map<Job, Set<Dependency>> map, Job key, Dependency dep) {
-        Set<Dependency> set = map.get(key);
+    private void add(Map<Job, Set<ModuleDependency>> map, Job key, ModuleDependency dep) {
+        Set<ModuleDependency> set = map.get(key);
         if (set == null) {
             set = new TreeSet<>(COMPARE_DEPENDENCIES_BY_NAME);
             map.put(key, set);
@@ -310,71 +306,5 @@ public final class ModuleDependencyGraph {
                 return topoOrder.get(o1) - topoOrder.get(o2);
             }
         };
-    }
-
-
-    /**
-     * Represents an edge in the dependency graph.
-     *
-     * @since 1.341
-     */
-    public static abstract class Dependency {
-        private final Job upstream;
-        private final Job downstream;
-
-        Dependency(Job<?, ?> upstream, Job<?, ?> downstream) {
-            this.upstream = upstream;
-            this.downstream = downstream;
-        }
-
-        @SuppressWarnings("WeakerAccess") // part of public API
-        public Job getUpstreamJob() {
-            return upstream;
-        }
-
-        public Job getDownstreamJob() {
-            return downstream;
-        }
-
-        /**
-         * Decide whether build should be triggered and provide any Actions for the build.
-         * Subclasses must override to control how/if the build is triggered.
-         * <p>The authentication in effect ({@link Jenkins#getAuthentication}) will be that of the upstream build.
-         * An implementation is expected to perform any relevant access control checks:
-         * that an upstream project can both see and build a downstream project,
-         * or that a downstream project can see an upstream project.
-         *
-         * @param run      run of upstream project that just completed
-         * @param listener For any error/log output
-         * @param actions  Add Actions for the triggered build to this list; never null
-         * @return True to trigger a build of the downstream project
-         */
-        public abstract boolean shouldTriggerBuild(Run<?, ?> run, TaskListener listener, List<Action> actions);
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-
-            final Dependency that = (Dependency) obj;
-            return this.upstream == that.upstream || this.downstream == that.downstream;
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 7;
-            hash = 23 * hash + this.upstream.hashCode();
-            hash = 23 * hash + this.downstream.hashCode();
-            return hash;
-        }
-
-        @Override
-        public String toString() {
-            return super.toString() + "[" + upstream + "->" + downstream + "]";
-        }
     }
 }
