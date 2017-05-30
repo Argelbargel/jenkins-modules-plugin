@@ -54,3 +54,6 @@ Additionally, when you make a change to both the common and the views-component 
 the views-component until all it's upstream-dependencies have completed their builds.
 When there are many developers you can configure the plugin so that it recognizes which changes originate from the same
 developer so that the pipeline are run in parallel for each set of changes.
+
+## Screencast of plugin usage
+![Screencast](./docs/screencast.gif)
