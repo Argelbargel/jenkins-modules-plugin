@@ -7,8 +7,6 @@ import hudson.model.Job;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
 import jenkins.util.DirectedGraph;
-import org.acegisecurity.context.SecurityContext;
-import org.acegisecurity.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,16 +56,16 @@ public final class ModuleDependencyGraph {
     @Initializer(after = InitMilestone.JOB_LOADED)
     @SuppressWarnings("WeakerAccess") // must be public to be detected as initializer
     public static void rebuild() {
-        SecurityContext saveCtx = ACL.impersonate(ACL.SYSTEM);
-        try {
-            ModuleDependencyGraph graph = build(new ModuleDependencyGraph());
+        ACL.impersonate(ACL.SYSTEM, new Runnable() {
+            @Override
+            public void run() {
+                ModuleDependencyGraph graph = build(new ModuleDependencyGraph());
 
-            synchronized (LOCK) {
-                instance = graph;
+                synchronized (LOCK) {
+                    instance = graph;
+                }
             }
-        } finally {
-            SecurityContextHolder.setContext(saveCtx);
-        }
+        });
     }
 
     private static ModuleDependencyGraph build(ModuleDependencyGraph graph) {
