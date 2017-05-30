@@ -60,4 +60,4 @@ developer so that the pipeline are run in parallel for each set of changes.
 
 ## Credits
 This plugin uses code from the [Build Graph View plugin](https://plugins.jenkins.io/buildgraph-view) and an adapted 
-version of the [DependencyGraph](http://javadoc.jenkins-ci.org/hudson/model/DependencyGraph.html))-implementation. 
+version of the [DependencyGraph](http://javadoc.jenkins-ci.org/hudson/model/DependencyGraph.html)-implementation from Jenkins itself. 
