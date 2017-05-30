@@ -14,9 +14,9 @@ job type. This means you can declare relationships for any job (like pipeline jo
 not just old-style-projects ([AbstractProject](http://javadoc.jenkins-ci.org/hudson/model/AbstractProject.html)s).
 Second, it uses its own namespace for the relationships, so you do not have to rely on the name of the job but can use 
 any naming-scheme that suits your build-system (e.g. maven/gradle artifact ids).
-Third, it allows you the define conditional relationships; this means downstream-projects are only blocked if both the 
-upstream- and downstream-projects share some attribute (e.g.,they were started by the same user, triggered by the same
-upstream-project).
+Third, it allows you to define conditional relationships; this means downstream-projects are only blocked if both the 
+upstream- and downstream-projects share some attribute (e.g. they were started by the same user, triggered by the same
+upstream-project etc.).
 
 ### Okay, but why "modules"? Basically it's a plugin to build pipelines of jobs, isn't it?
 
