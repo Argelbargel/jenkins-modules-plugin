@@ -9,6 +9,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
+import jenkins.model.ParameterizedJobMixIn;
 import jenkins.util.DirectedGraph;
 import org.acegisecurity.context.SecurityContext;
 import org.acegisecurity.context.SecurityContextHolder;
@@ -74,10 +75,10 @@ public final class ModuleDependencyGraph {
     }
 
     private static ModuleDependencyGraph build(ModuleDependencyGraph graph) {
-        for (ModuleAction module : ModuleAction.all()) {
-            ModuleTrigger trigger = module.getTrigger();
+        for (Job job : Jenkins.getInstance().getAllItems(Job.class)) {
+            ModuleTrigger trigger = ParameterizedJobMixIn.getTrigger(job, ModuleTrigger.class);
             if (trigger != null) {
-                trigger.buildDependencyGraph(module.getJob(), graph);
+                trigger.buildDependencyGraph(job, graph);
             }
         }
 
@@ -181,7 +182,7 @@ public final class ModuleDependencyGraph {
     /**
      * Gets all the direct and indirect downstream dependencies of the given project.
      */
-    @SuppressWarnings("unused") // part of public API
+    @SuppressWarnings({"unused", "WeakerAccess"}) // part of public API
     public Set<Job> getTransitiveDownstream(Job src) {
         return getTransitive(forward, src, false);
     }

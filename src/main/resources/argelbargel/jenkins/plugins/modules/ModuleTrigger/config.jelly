@@ -21,4 +21,9 @@
              field="triggerDownstreamWithCurrentParameters">
         <f:checkbox default="${descriptor.triggerDownstreamWithCurrentParameters}"/>
     </f:entry>
+    <f:entry title="${%Trigger downstream only for builds with this parameters}">
+        <f:hetero-list name="triggerParameters" items="${instance.triggerParameters}" hasHeader="true"
+                       descriptors="${descriptor.parameterDescriptors}"
+                       targetType="${argelbargel.jenkins.plugins.modules.parameters.TriggerParameter.class}"/>
+    </f:entry>
 </j:jelly>

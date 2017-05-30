@@ -1,14 +1,15 @@
 package argelbargel.jenkins.plugins.modules;
 
 
+import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter;
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
 import argelbargel.jenkins.plugins.modules.predicates.AndActionsPredicate;
 import hudson.model.Actionable;
 import hudson.model.InvisibleAction;
 import hudson.model.Job;
+import hudson.model.ParametersAction;
 import hudson.model.Result;
 import jenkins.model.Jenkins;
-import jenkins.model.ParameterizedJobMixIn;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -57,6 +58,7 @@ public final class ModuleAction extends InvisibleAction {
     private long waitInterval;
     private Result triggerResult;
     private boolean triggerDownstreamWithCurrentParameters;
+    private List<TriggerParameter> triggerParameters;
 
 
     ModuleAction(String name) {
@@ -66,6 +68,7 @@ public final class ModuleAction extends InvisibleAction {
         this.waitInterval = 0;
         this.triggerResult = Result.SUCCESS;
         this.triggerDownstreamWithCurrentParameters = true;
+        this.triggerParameters = emptyList();
     }
 
     public String getModuleName() {
@@ -114,8 +117,18 @@ public final class ModuleAction extends InvisibleAction {
         return triggerDownstreamWithCurrentParameters;
     }
 
-    boolean shouldTriggerDownstream(Result result) {
-        return result.isBetterOrEqualTo(triggerResult);
+    boolean shouldTriggerDownstream(Result result, ParametersAction parameters) {
+        return result.isBetterOrEqualTo(triggerResult) && shouldTriggerDownstream(parameters);
+    }
+
+    private boolean shouldTriggerDownstream(ParametersAction parameters) {
+        for (TriggerParameter t : triggerParameters) {
+            if (!t.test(parameters)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     Set<String> getDependencies() {
@@ -155,8 +168,12 @@ public final class ModuleAction extends InvisibleAction {
         triggerDownstreamWithCurrentParameters = value;
     }
 
-    ModuleTrigger getTrigger() {
-        return ParameterizedJobMixIn.getTrigger(getJob(), ModuleTrigger.class);
+    void setTriggerParameters(List<TriggerParameter> parameters) {
+        triggerParameters = parameters;
+    }
+
+    List<TriggerParameter> getTriggerParameters() {
+        return triggerParameters;
     }
 
     @Override

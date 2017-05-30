@@ -2,12 +2,15 @@ package argelbargel.jenkins.plugins.modules;
 
 
 import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph.Dependency;
+import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter;
+import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter.TriggerParameterDescriptor;
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate;
 import argelbargel.jenkins.plugins.modules.predicates.ActionsPredicate.ActionsPredicateDescriptor;
 import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Item;
 import hudson.model.Job;
+import hudson.model.ParametersAction;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -106,6 +109,15 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         return action.getTriggerDownstreamWithCurrentParameters();
     }
 
+    @DataBoundSetter
+    public void setTriggerParameters(List<TriggerParameter> parameters) {
+        action.setTriggerParameters(parameters);
+    }
+
+    public List<TriggerParameter> getTriggerParameters() {
+        return action.getTriggerParameters();
+    }
+
     void buildDependencyGraph(Job<?, ?> owner, ModuleDependencyGraph graph) {
         for (String dependency : action.getDependencies()) {
             ModuleAction module = ModuleAction.get(dependency);
@@ -140,7 +152,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         @Override
         public boolean shouldTriggerBuild(Run<?, ?> build, TaskListener listener, List<Action> actions) {
             ModuleAction module = ModuleAction.get(getUpstreamJob());
-            return module.shouldTriggerDownstream(build.getResult()) && willNotBlock();
+            return module.shouldTriggerDownstream(build.getResult(), build.getAction(ParametersAction.class)) && willNotBlock();
         }
 
         @SuppressWarnings("unchecked")
@@ -172,6 +184,12 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         public List<ActionsPredicateDescriptor> getPredicateDescriptors() {
             return ActionsPredicateDescriptor.getAll();
         }
+
+        @SuppressWarnings("unused") // used by config.jelly
+        public List<TriggerParameterDescriptor> getParameterDescriptors() {
+            return TriggerParameterDescriptor.getAll();
+        }
+
 
         @SuppressWarnings("unused") // used by config.jelly
         public String getJobName() {
