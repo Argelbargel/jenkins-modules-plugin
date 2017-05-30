@@ -22,7 +22,7 @@ upstream-project etc.).
 
 Yes, this plugin is about building pipelines which span/consist of jenkins jobs. Unfortunally all the appropriate terms
 like pipeline, stage etc. have their specific meanings since the advent of the [Pipeline Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Pipeline+Plugin).
-Additionally, most older plugins containing the term "pipeline" (e.g. the [Build Pipeline Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Build+Pipeline+Plugin) 
+Additionally, most older plugins containing the term "pipeline" (e.g. the [Build Pipeline Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Build+Pipeline+Plugin)) 
 rely on Jenkins' builtin dependency-tracking mechanism which is restricted to old-style projects and will not work for
 jobs using the new pipeline jobs. Thus i've tried to find a term which expresses that this plugin spans jobs 
 (which by themself use a pipeline-script consisting of stages which might run on jenkins nodes) and is independent of
