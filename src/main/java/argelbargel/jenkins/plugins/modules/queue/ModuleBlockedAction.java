@@ -93,7 +93,7 @@ public final class ModuleBlockedAction extends InvisibleAction {
         return Util.getTimeSpanString(blockEnd != null ? blockEnd - blockStart : currentTimeMillis() - blockStart);
     }
 
-    @SuppressWarnings("unused") // used by summary.jelly
+    @SuppressWarnings({"unused", "WeakerAccess"}) // used by summary.jelly
     public Collection<Blocker> getAllBlockers() {
         return blockers.values();
     }
