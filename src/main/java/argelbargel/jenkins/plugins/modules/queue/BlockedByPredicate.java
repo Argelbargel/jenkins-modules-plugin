@@ -14,7 +14,7 @@ class BlockedByPredicate implements Predicate<Queue.Item> {
 
     @Override
     public boolean apply(Queue.Item input) {
-        if (!input.isBlocked() || reasonQueueId == input.getId()) {
+        if (!input.isBlocked() || input.getId() == reasonQueueId) {
             return false;
         }
 
