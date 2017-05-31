@@ -44,21 +44,11 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     static void cancelItemsBlockedBy(Item reason) {
-        cancelItemsBy(new BlockedByPredicate<Item>(reason) {
-            @Override
-            protected boolean isBlockedBy(ModuleBlockedAction blocked, Item item) {
-                return blocked.isBlockedBy(item.getId());
-            }
-        });
+        cancelItemsBy(new BlockedByPredicate(reason.getId()));
     }
 
     static void cancelItemsBlockedBy(Run reason) {
-        cancelItemsBy(new BlockedByPredicate<Run>(reason) {
-            @Override
-            protected boolean isBlockedBy(ModuleBlockedAction blocked, Run run) {
-                return blocked.isBlockedBy(run.getQueueId());
-            }
-        });
+        cancelItemsBy(new BlockedByPredicate(reason.getQueueId()));
     }
 
     private static void cancelItemsBy(Predicate<Item> predicate) {
@@ -122,28 +112,7 @@ public final class ModuleBlockedAction extends InvisibleAction {
         return blockers.containsKey(queueId) && blockers.get(queueId).getBuild() == build;
     }
 
-    private boolean isBlockedBy(long queueId) {
-        return blockEnd != null && blockers.containsKey(queueId);
-    }
-
-
-    private static abstract class BlockedByPredicate<REASON> implements Predicate<Item> {
-        private final REASON reason;
-
-        BlockedByPredicate(REASON reason) {
-            this.reason = reason;
-        }
-
-        @Override
-        public boolean apply(Item input) {
-            if (!input.isBlocked()) {
-                return false;
-            }
-
-            ModuleBlockedAction blocked = input.getAction(ModuleBlockedAction.class);
-            return blocked != null && isBlockedBy(blocked, reason);
-        }
-
-        protected abstract boolean isBlockedBy(ModuleBlockedAction blocked, REASON reason);
+    boolean isBlockedBy(long queueId) {
+        return blockEnd == null && blockers.containsKey(queueId);
     }
 }
