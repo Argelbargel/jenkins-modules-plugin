@@ -15,7 +15,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Map;
+import java.util.TreeMap;
 
 
 @SuppressWarnings("unused") // extension
@@ -25,15 +26,20 @@ public final class BlockedColumn extends ListViewColumn {
         super();
     }
 
-    public Collection<Blocker> getBlockers(Job<?, ?> job) {
+    public Collection<Collection<Blocker>> getBlockers(Job<?, ?> job) {
+        // order blocked items by queue-id
+        Map<Long, Collection<Blocker>> blockers = new TreeMap<>();
+
         for (Item item : Jenkins.getInstance().getQueue().getItems()) {
             if (item.task == job) {
                 ModuleBlockedAction blocked = ModuleBlockedAction.get(item);
-                return blocked != null && blocked.isBlocked() ? blocked.getCurrentBlockers() : Collections.<Blocker>emptyList();
+                if (blocked != null && blocked.isBlocked()) {
+                    blockers.put(item.getId(), blocked.getCurrentBlockers());
+                }
             }
         }
 
-        return Collections.emptyList();
+        return blockers.values();
     }
 
     @Extension(ordinal = DEFAULT_COLUMNS_ORDINAL_PROPERTIES_START - 3)

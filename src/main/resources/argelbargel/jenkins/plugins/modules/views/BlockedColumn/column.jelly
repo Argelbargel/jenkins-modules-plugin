@@ -1,22 +1,43 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core">
+<j:jelly xmlns:j="jelly:core" xmlns:d="jelly:define" xmlns:local="local">
+    <d:taglib uri="local">
+        <d:tag name="blockers"> <!-- @items -->
+            <j:forEach var="blocker" items="${items}" varStatus="status">
+                <a class="model-link inside" href="${blocker.url}">
+                    ${blocker.moduleName}
+                </a>
+                <j:if test="${not empty blocker.build}">
+                    <a class="model-link inside" href="${blocker.url}${blocker.build}">
+                        #${blocker.build}
+                    </a>
+                </j:if>
+                <j:if test="${not status.last}">,
+                    <br/>
+                </j:if>
+            </j:forEach>
+        </d:tag>
+    </d:taglib>
+
     <j:set var="blockers" value="${it.getBlockers(job)}"/>
     <td>
         <j:choose>
             <j:when test="${not empty blockers}">
-                <j:forEach var="blocker" items="${blockers}" varStatus="status">
-                    <a class="model-link inside" href="${blocker.url}">
-                        ${blocker.moduleName}
-                    </a>
-                    <j:if test="${not empty blocker.build}">
-                        <a class="model-link inside" href="${blocker.url}${blocker.build}">
-                            #${blocker.build}
-                        </a>
-                    </j:if>
-                    <j:if test="${not status.last}">,
-                        <br/>
-                    </j:if>
-                </j:forEach>
+                <j:choose>
+                    <j:when test="${blockers.size() > 1}">
+                        <ol>
+                            <j:forEach var="blocked" items="${blockers}">
+                                <li>
+                                    <local:blockers items="${blocked}"/>
+                                </li>
+                            </j:forEach>
+                        </ol>
+                    </j:when>
+                    <j:otherwise>
+                        <j:forEach var="blocked" items="${blockers}">
+                            <local:blockers items="${blocked}"/>
+                        </j:forEach>
+                    </j:otherwise>
+                </j:choose>
             </j:when>
             <j:otherwise>
                 -
