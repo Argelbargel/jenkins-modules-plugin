@@ -112,7 +112,7 @@ public final class UpstreamDependencyDescribable extends AbstractDescribableImpl
         @Restricted(NoExternalUse.class)
         @SuppressWarnings("unused") // used by config.jelly
         public ComboBoxModel doFillNameItems(@AncestorInPath Job context) {
-            Set<String> names = new HashSet<>(ModuleUtils.allNames());
+            Set<String> names = new HashSet<>(ModuleUtils.allModuleNames());
 
             String current = findModule(context);
             if (current != null) {

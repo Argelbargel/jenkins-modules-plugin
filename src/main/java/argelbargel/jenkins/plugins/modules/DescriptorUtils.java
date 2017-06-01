@@ -6,7 +6,7 @@ import hudson.util.ListBoxModel;
 
 
 final class DescriptorUtils {
-    static ListBoxModel getTriggerWhenResultBetterOrEqualToItems() {
+    static ListBoxModel getTriggerResultItems() {
         ListBoxModel model = new ListBoxModel();
         model.add(Result.SUCCESS.toString());
         model.add(Result.UNSTABLE.toString());

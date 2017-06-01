@@ -8,7 +8,7 @@ import java.util.Set;
 
 
 final class ModuleUtils {
-    static Set<String> allNames() {
+    static Set<String> allModuleNames() {
         Set<String> names = new HashSet<>();
         for (ModuleAction module : ModuleAction.all()) {
             names.add(module.getModuleName());
@@ -18,7 +18,7 @@ final class ModuleUtils {
         return names;
     }
 
-    static Set<String> allModules() {
+    static Set<String> allModuleNamesWithJobs() {
         Set<ModuleAction> all = ModuleAction.all();
         Set<String> names = new HashSet<>(all.size());
         for (ModuleAction module : all) {

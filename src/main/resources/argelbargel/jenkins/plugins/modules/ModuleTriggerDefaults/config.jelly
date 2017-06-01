@@ -5,11 +5,11 @@
             <f:textbox/>
         </f:entry>
         <f:entry title="${%Trigger downstream when result equal or better than:}"
-                 field="triggerWhenResultBetterOrEqualTo">
+                 field="triggerResult">
             <f:select/>
         </f:entry>
         <f:entry title="${%Trigger downstream with current build parameters}"
-                 field="triggerDownstreamWithCurrentParameters">
+                 field="triggerWithCurrentParameters">
             <f:checkbox/>
         </f:entry>
     </f:section>

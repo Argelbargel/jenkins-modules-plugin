@@ -134,7 +134,7 @@ class DownstreamTrigger {
 
     private List<ParameterValue> createDownstreamParameters() {
         List<ParameterValue> values = new ArrayList<>();
-        if (moduleTrigger.getTriggerDownstreamWithCurrentParameters()) {
+        if (moduleTrigger.getTriggerWithCurrentParameters()) {
             ParametersAction action = upstreamBuild.getAction(ParametersAction.class);
             if (action != null) {
                 for (ParameterValue value : action.getParameters())

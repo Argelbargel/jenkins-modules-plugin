@@ -37,9 +37,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static argelbargel.jenkins.plugins.modules.DescriptorUtils.getTriggerWhenResultBetterOrEqualToItems;
-import static argelbargel.jenkins.plugins.modules.ModuleUtils.allModules;
-import static argelbargel.jenkins.plugins.modules.ModuleUtils.allNames;
+import static argelbargel.jenkins.plugins.modules.DescriptorUtils.getTriggerResultItems;
+import static argelbargel.jenkins.plugins.modules.ModuleUtils.allModuleNames;
+import static argelbargel.jenkins.plugins.modules.ModuleUtils.allModuleNamesWithJobs;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildUpstream;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.findProject;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.moduleExists;
@@ -55,22 +55,27 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
 
     private final ModuleAction action;
     private String triggerResult;
-    private boolean triggerDownstreamWithCurrentParameters;
+    private boolean triggerWithCurrentParameters;
     private List<TriggerParameter> triggerParameters;
     private List<TriggerParameter> downstreamParameters;
 
+    @Deprecated // >= 0.9.1
+    @SuppressWarnings({"DeprecatedIsStillUsed", "unused"})
+    private transient Boolean triggerDownstreamWithCurrentParameters;
+
 
     @DataBoundConstructor
-    public ModuleTrigger(String name) {
+    public ModuleTrigger(String moduleName) {
         super();
-        this.action = new ModuleAction(name);
+        this.action = new ModuleAction(moduleName);
         this.triggerResult = SUCCESS.toString();
+        this.triggerWithCurrentParameters = false;
         this.triggerParameters = emptyList();
-        this.triggerDownstreamWithCurrentParameters = false;
         this.downstreamParameters = emptyList();
     }
 
-    public String getName() {
+    @SuppressWarnings("unused") // used by config.jelly
+    public String getModuleName() {
         return action.getModuleName();
     }
 
@@ -95,12 +100,12 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     }
 
     @SuppressWarnings("unused") // used by config.jelly
-    public String getTriggerWhenResultBetterOrEqualTo() {
+    public String getTriggerResult() {
         return triggerResult;
     }
 
     @DataBoundSetter
-    public void setTriggerWhenResultBetterOrEqualTo(String result) {
+    public void setTriggerResult(String result) {
         triggerResult = result;
     }
 
@@ -114,13 +119,13 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     }
 
     @DataBoundSetter
-    public void setTriggerDownstreamWithCurrentParameters(boolean value) {
-        triggerDownstreamWithCurrentParameters = value;
+    public void setTriggerWithCurrentParameters(boolean value) {
+        triggerWithCurrentParameters = value;
     }
 
     @SuppressWarnings("unused") // used by config.jelly
-    public boolean getTriggerDownstreamWithCurrentParameters() {
-        return triggerDownstreamWithCurrentParameters;
+    public boolean getTriggerWithCurrentParameters() {
+        return triggerWithCurrentParameters;
     }
 
     @DataBoundSetter
@@ -229,13 +234,13 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         }
 
         @SuppressWarnings("unused") // used by config.jelly
-        public String getTriggerWhenResultBetterOrEqualTo() {
-            return getDefaults().getTriggerWhenResultBetterOrEqualTo();
+        public String getTriggerResult() {
+            return getDefaults().getTriggerResult();
         }
 
         @SuppressWarnings("unused") // used by config.jelly
-        public boolean getTriggerDownstreamWithCurrentParameters() {
-            return getDefaults().getTriggerDownstreamWithCurrentParameters();
+        public boolean getTriggerWithCurrentParameters() {
+            return getDefaults().getTriggerWithCurrentParameters();
         }
 
         private ModuleTriggerDefaults getDefaults() {
@@ -244,13 +249,13 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
 
         @Restricted(NoExternalUse.class)
         @SuppressWarnings("unused") // used by config.jelly
-        public FormValidation doCheckName(@QueryParameter String name, @AncestorInPath Job context) {
-            if (StringUtils.isBlank(name)) {
+        public FormValidation doCheckModuleName(@QueryParameter String moduleName, @AncestorInPath Job context) {
+            if (StringUtils.isBlank(moduleName)) {
                 return FormValidation.error("module name must not be blank");
             }
 
-            if (moduleExists(name) && !context.equals(findProject(name))) {
-                return FormValidation.error("a module with the name " + name + " already exists");
+            if (moduleExists(moduleName) && !context.equals(findProject(moduleName))) {
+                return FormValidation.error("a module with the name " + moduleName + " already exists");
             }
 
             return FormValidation.ok();
@@ -258,23 +263,23 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
 
         @Restricted(NoExternalUse.class)
         @SuppressWarnings("unused") // used by config.jelly
-        public ComboBoxModel doFillNameItems(@QueryParameter String name) {
-            Set<String> names = allNames();
-            names.removeAll(buildUpstream(name));
-            names.removeAll(allModules());
+        public ComboBoxModel doFillModuleNameItems(@QueryParameter String moduleName) {
+            Set<String> names = allModuleNames();
+            names.removeAll(buildUpstream(moduleName));
+            names.removeAll(allModuleNamesWithJobs());
 
             return new ComboBoxModel(names);
         }
 
         @Restricted(NoExternalUse.class)
         @SuppressWarnings("unused") // used by config.jelly
-        public ListBoxModel doFillTriggerWhenResultBetterOrEqualToItems() {
-            return getTriggerWhenResultBetterOrEqualToItems();
+        public ListBoxModel doFillTriggerResultItems() {
+            return getTriggerResultItems();
         }
     }
 
 
-    @Deprecated // >= 0.8
+    @Deprecated // >= 0.9.1
     @SuppressWarnings({"deprecation", "unused"})
     public static final class ConverterImpl extends XStream2.PassthruConverter<ModuleTrigger> {
         public ConverterImpl(XStream2 xstream) {
@@ -283,10 +288,8 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
 
         @Override
         protected void callback(ModuleTrigger obj, UnmarshallingContext context) {
-            if (obj.triggerResult == null) {
-                obj.triggerResult = obj.action.triggerResult.toString();
-                obj.triggerDownstreamWithCurrentParameters = obj.action.triggerDownstreamWithCurrentParameters;
-                obj.triggerParameters = emptyList();
+            if (obj.triggerDownstreamWithCurrentParameters != null) {
+                obj.triggerWithCurrentParameters = obj.triggerDownstreamWithCurrentParameters;
             }
         }
     }

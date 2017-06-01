@@ -6,7 +6,6 @@ import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate;
 import hudson.model.Actionable;
 import hudson.model.InvisibleAction;
 import hudson.model.Job;
-import hudson.model.Result;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
@@ -54,13 +53,6 @@ public final class ModuleAction extends InvisibleAction {
     private Set<String> dependencies;
     private List<QueuePredicate> predicates;
     private long waitInterval;
-
-    @Deprecated // >= 0.8
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    transient Result triggerResult;
-    @Deprecated // >= 0.8
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    transient boolean triggerDownstreamWithCurrentParameters;
 
 
     ModuleAction(String name) {
