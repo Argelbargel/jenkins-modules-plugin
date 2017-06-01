@@ -60,7 +60,7 @@ public final class ModuleTriggerDefaults extends GlobalConfiguration {
 
     @Restricted(NoExternalUse.class)
     @SuppressWarnings("unused") // used by config.jelly
-    public ListBoxModel doFillTriggerResult() {
+    public ListBoxModel doFillTriggerResultItems() {
         return getTriggerResultItems();
     }
 
