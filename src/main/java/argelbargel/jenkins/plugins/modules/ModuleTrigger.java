@@ -10,7 +10,9 @@ import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Item;
 import hudson.model.Job;
+import hudson.model.ParametersAction;
 import hudson.model.Result;
+import hudson.model.Run;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.ComboBoxModel;
@@ -55,6 +57,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     private String triggerResult;
     private boolean triggerDownstreamWithCurrentParameters;
     private List<TriggerParameter> triggerParameters;
+    private List<TriggerParameter> downstreamParameters;
 
 
     @DataBoundConstructor
@@ -64,6 +67,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         this.triggerResult = SUCCESS.toString();
         this.triggerParameters = emptyList();
         this.triggerDownstreamWithCurrentParameters = false;
+        this.downstreamParameters = emptyList();
     }
 
     public String getName() {
@@ -79,7 +83,6 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     public void setDependencies(List<UpstreamDependencyDescribable> deps) {
         action.setDependencies(UpstreamDependencyDescribable.unwrap(deps));
     }
-
 
     @SuppressWarnings("unused") // used by config.jelly
     public int getDependencyWaitInterval() {
@@ -104,7 +107,6 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     public List<QueuePredicate> getPredicates() {
         return action.getPredicates();
     }
-
 
     @DataBoundSetter
     public void setPredicates(List<QueuePredicate> predicates) {
@@ -131,6 +133,16 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         return triggerParameters;
     }
 
+    @SuppressWarnings("unused") // used by config.jelly
+    public List<TriggerParameter> getDownstreamParameters() {
+        return downstreamParameters;
+    }
+
+    @DataBoundSetter
+    public void setDownstreamParameters(List<TriggerParameter> parameters) {
+        downstreamParameters = parameters;
+    }
+
     @Override
     public void start(ParameterizedJob project, boolean newInstance) {
         super.start(project, newInstance);
@@ -148,15 +160,35 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         return singletonList(action);
     }
 
+    @Restricted(NoExternalUse.class)
     public boolean mustCancelDownstream(Result result) {
         return result.isWorseThan(Result.fromString(triggerResult));
     }
 
-    void buildDependencyGraph(ModuleDependencyGraph graph, Job<?, ?> owner) {
+    @Restricted(NoExternalUse.class)
+    public boolean shouldTriggerDownstream(Run<?, ?> upstream) {
+        return shouldTriggerDownstream(upstream.getResult(), upstream.getAction(ParametersAction.class));
+    }
+
+    private boolean shouldTriggerDownstream(Result result, ParametersAction parameters) {
+        return result.isBetterOrEqualTo(Result.fromString(triggerResult)) && shouldTriggerDownstream(parameters);
+    }
+
+    private boolean shouldTriggerDownstream(ParametersAction parameters) {
+        for (TriggerParameter t : triggerParameters) {
+            if (!t.test(parameters)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    void addUpstreamDependencies(ModuleDependencyGraph graph, Job<?, ?> owner) {
         for (String dependency : action.getDependencies()) {
             ModuleAction module = ModuleAction.get(dependency);
             if (module != null) {
-                graph.addDependency(new ModuleDependency(module.getJob(), owner, Result.fromString(triggerResult), triggerParameters, triggerDownstreamWithCurrentParameters));
+                graph.addDependency(new ModuleDependency(module.getJob(), owner));
             }
         }
     }
@@ -186,7 +218,6 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
             return TriggerParameterDescriptor.getAll();
         }
 
-
         @SuppressWarnings("unused") // used by config.jelly
         public String getJobName() {
             return Stapler.getCurrentRequest().findAncestorObject(Job.class).getFullName();
@@ -210,7 +241,6 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         private ModuleTriggerDefaults getDefaults() {
             return Jenkins.getInstance().getDescriptorByType(ModuleTriggerDefaults.class);
         }
-
 
         @Restricted(NoExternalUse.class)
         @SuppressWarnings("unused") // used by config.jelly

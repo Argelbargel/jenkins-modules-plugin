@@ -4,6 +4,8 @@ package argelbargel.jenkins.plugins.modules.queue;
 import argelbargel.jenkins.plugins.modules.Messages;
 import argelbargel.jenkins.plugins.modules.ModuleDependency;
 import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph;
+import argelbargel.jenkins.plugins.modules.ModuleTrigger;
+import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter;
 import hudson.console.ModelHyperlinkNote;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
@@ -13,6 +15,7 @@ import hudson.model.FileParameterValue;
 import hudson.model.Job;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.security.ACL;
@@ -22,8 +25,6 @@ import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
 import jenkins.security.QueueItemAuthenticatorConfiguration;
 import jenkins.security.QueueItemAuthenticatorDescriptor;
 import org.acegisecurity.Authentication;
-import org.acegisecurity.context.SecurityContext;
-import org.acegisecurity.context.SecurityContextHolder;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -40,97 +41,37 @@ import static argelbargel.jenkins.plugins.modules.queue.RunUtils.getUncompletedR
  * @see hudson.tasks.BuildTrigger
  */
 class DownstreamTrigger {
-    static void triggerDownstream(Run<?, ?> reason, TaskListener listener) {
-        execute(reason, reason.getParent(), listener);
+    private final Run<?, ?> upstreamBuild;
+    private final ModuleTrigger moduleTrigger;
+    private final PrintStream logger;
+
+    DownstreamTrigger(Run<?, ?> upstream, ModuleTrigger trigger, TaskListener listener) {
+        upstreamBuild = upstream;
+        moduleTrigger = trigger;
+        logger = listener.getLogger();
     }
 
-    private static void execute(Run<?, ?> reason, Job<?, ?> job, TaskListener listener) {
-        List<ModuleDependency> downstream = ModuleDependencyGraph.get().getDownstreamDependencies(job);
-        Authentication auth = checkAuth(downstream, listener.getLogger());
-        execute(reason, downstream, auth, listener);
-    }
-
-    private static void execute(Run<?, ?> reason, List<ModuleDependency> downstream, Authentication auth, TaskListener listener) {
-        for (ModuleDependency dep : downstream) {
-            List<Action> buildActions = new ArrayList<>();
-            SecurityContext orig = ACL.impersonate(auth);
-            try {
-                if (isNotAlreadyRunning(dep, reason, listener) && dep.shouldTriggerBuild(reason)) {
-                    buildActions.addAll(createBuildActions(reason, dep.shouldTriggerBuildWithCurrentParameters()));
-                    execute(dep.getDownstreamJob(), buildActions.toArray(new Action[buildActions.size()]), listener.getLogger());
-                }
-            } finally {
-                SecurityContextHolder.setContext(orig);
-            }
+    void execute() {
+        if (moduleTrigger.shouldTriggerDownstream(upstreamBuild)) {
+            execute(ModuleDependencyGraph.get().getDownstreamDependencies(upstreamBuild.getParent()));
         }
-
     }
 
-    private static boolean isNotAlreadyRunning(ModuleDependency dep, Run<?, ?> reason, TaskListener listener) {
-        return isNotAlreadyRunning(dep.getDownstreamJob(), reason, listener.getLogger());
-    }
-
-    private static boolean isNotAlreadyRunning(Job<?, ?> job, Run<?, ?> reason, PrintStream logger) {
-        for (Run<?, ?> run : getUncompletedRuns(job)) {
-            ModuleBlockedAction blocked = ModuleBlockedAction.get(run);
-            if (blocked != null && blocked.wasBlockedBy(reason)) {
-                logger.println(Messages.DownstreamTrigger_AlreadyRunning(run.getDisplayName()));
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static Collection<? extends Action> createBuildActions(Run<?, ?> run, boolean withCurrentParameters) {
-        Collection<Action> actions = new ArrayList<>();
-        actions.add(new CauseAction(new Cause.UpstreamCause(run)));
-
-        if (withCurrentParameters) {
-            ParametersAction action = run.getAction(ParametersAction.class);
-            if (action != null) {
-                List<ParameterValue> values = new ArrayList<>(action.getParameters().size());
-                for (ParameterValue value : action.getParameters())
-                    // FileParameterValue is currently not reusable, so omit these:
-                    if (!(value instanceof FileParameterValue)) {
-                        values.add(value);
+    private void execute(final List<ModuleDependency> downstream) {
+        ACL.impersonate(checkAuth(downstream), new Runnable() {
+            @Override
+            public void run() {
+                for (ModuleDependency dep : downstream) {
+                    if (isNotAlreadyRunning(dep) && dep.shouldTriggerBuild()) {
+                        Collection<Action> actions = createDownstreamActions(dep.getDownstreamJob());
+                        triggerDownstreamBuild(dep.getDownstreamJob(), actions.toArray(new Action[actions.size()]));
                     }
-                actions.add(new ParametersAction(values));
-            }
-        }
-
-        return actions;
-    }
-
-    private static void execute(Job<?, ?> job, Action[] actions, PrintStream logger) {
-        if (isEnabled(job, logger)) {
-            boolean scheduled = scheduleBuild(job, actions);
-            if (Jenkins.getInstance().getItemByFullName(job.getFullName()) == job) {
-                String name = ModelHyperlinkNote.encodeTo(job);
-                if (scheduled) {
-                    logger.println(hudson.tasks.Messages.BuildTrigger_Triggering(name));
-                } else {
-                    logger.println(hudson.tasks.Messages.BuildTrigger_InQueue(name));
                 }
-            } // otherwise upstream users should not know that it happened
-        }
+            }
+        });
     }
 
-    @SuppressWarnings("SimplifiableIfStatement")
-    private static boolean scheduleBuild(Job<?, ?> job, Action[] actions) {
-        return ParameterizedJobMixIn.scheduleBuild2(job, ((ParameterizedJob) job).getQuietPeriod(), actions) != null;
-    }
-
-    private static boolean isEnabled(Job<?, ?> job, PrintStream logger) {
-        if (job instanceof AbstractProject && ((AbstractProject) job).isDisabled()) {
-            logger.println(hudson.tasks.Messages.BuildTrigger_Disabled(ModelHyperlinkNote.encodeTo(job)));
-            return false;
-        }
-
-        return true;
-    }
-
-    private static Authentication checkAuth(List<ModuleDependency> downstream, PrintStream logger) {
+    private Authentication checkAuth(List<ModuleDependency> downstream) {
         Authentication auth = Jenkins.getAuthentication(); // from build
         if (auth.equals(ACL.SYSTEM)) { // i.e., unspecified
             if (QueueItemAuthenticatorDescriptor.all().isEmpty()) {
@@ -155,5 +96,87 @@ class DownstreamTrigger {
         return auth;
     }
 
-    private DownstreamTrigger() { /* no instances allowed */ }
+    private boolean isNotAlreadyRunning(ModuleDependency dep) {
+        return isNotAlreadyRunning(dep.getDownstreamJob());
+    }
+
+    private boolean isNotAlreadyRunning(Job<?, ?> job) {
+        for (Run<?, ?> run : getUncompletedRuns(job)) {
+            ModuleBlockedAction blocked = ModuleBlockedAction.get(run);
+            if (blocked != null && blocked.wasBlockedBy(upstreamBuild)) {
+                logger.println(Messages.DownstreamTrigger_AlreadyRunning(run.getDisplayName()));
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private Collection<Action> createDownstreamActions(Job<?, ?> downstream) {
+        Collection<Action> actions = new ArrayList<>(2);
+        actions.add(new CauseAction(new Cause.UpstreamCause(upstreamBuild)));
+
+        ParametersDefinitionProperty property = downstream.getProperty(ParametersDefinitionProperty.class);
+        if (property != null) {
+            List<ParameterValue> values = new ArrayList<>();
+            for (ParameterValue value : createDownstreamParameters()) {
+                if (property.getParameterDefinitionNames().contains(value.getName())) {
+                    values.add(value);
+                }
+            }
+            if (!values.isEmpty()) {
+                actions.add(new ParametersAction(values));
+            }
+        }
+
+        return actions;
+    }
+
+    private List<ParameterValue> createDownstreamParameters() {
+        List<ParameterValue> values = new ArrayList<>();
+        if (moduleTrigger.getTriggerDownstreamWithCurrentParameters()) {
+            ParametersAction action = upstreamBuild.getAction(ParametersAction.class);
+            if (action != null) {
+                for (ParameterValue value : action.getParameters())
+                    // FileParameterValue is currently not reusable, so omit these:
+                    if (!(value instanceof FileParameterValue)) {
+                        values.add(value);
+                    }
+            }
+        }
+
+        for (TriggerParameter parameter : moduleTrigger.getDownstreamParameters()) {
+            values.add(parameter.createValue());
+        }
+
+        return values;
+    }
+
+    private void triggerDownstreamBuild(Job<?, ?> job, Action[] actions) {
+        if (isEnabled(job, logger)) {
+            boolean scheduled = scheduleBuild(job, actions);
+            if (Jenkins.getInstance().getItemByFullName(job.getFullName()) == job) {
+                String name = ModelHyperlinkNote.encodeTo(job);
+                if (scheduled) {
+                    logger.println(hudson.tasks.Messages.BuildTrigger_Triggering(name));
+                } else {
+                    logger.println(hudson.tasks.Messages.BuildTrigger_InQueue(name));
+                }
+            } // otherwise upstream users should not know that it happened
+        }
+    }
+
+    @SuppressWarnings("SimplifiableIfStatement")
+    private boolean scheduleBuild(Job<?, ?> job, Action[] actions) {
+        return ParameterizedJobMixIn.scheduleBuild2(job, ((ParameterizedJob) job).getQuietPeriod(), actions) != null;
+    }
+
+    private boolean isEnabled(Job<?, ?> job, PrintStream logger) {
+        if (job instanceof AbstractProject && ((AbstractProject) job).isDisabled()) {
+            logger.println(hudson.tasks.Messages.BuildTrigger_Disabled(ModelHyperlinkNote.encodeTo(job)));
+            return false;
+        }
+
+        return true;
+    }
 }

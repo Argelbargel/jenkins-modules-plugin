@@ -29,7 +29,7 @@ public final class ModuleRunListener extends RunListener<Run<?, ?>> {
         if (trigger.mustCancelDownstream(run.getResult())) {
             ModuleBlockedAction.cancelItemsBlockedBy(run);
         } else {
-            DownstreamTrigger.triggerDownstream(run, listener);
+            new DownstreamTrigger(run, trigger, listener).execute();
         }
     }
 }

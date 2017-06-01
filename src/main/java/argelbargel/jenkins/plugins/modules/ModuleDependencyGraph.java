@@ -72,7 +72,7 @@ public final class ModuleDependencyGraph {
         for (Job job : Jenkins.getInstance().getAllItems(Job.class)) {
             ModuleTrigger trigger = ModuleTrigger.get(job);
             if (trigger != null) {
-                trigger.buildDependencyGraph(graph, job);
+                trigger.addUpstreamDependencies(graph, job);
             }
         }
 

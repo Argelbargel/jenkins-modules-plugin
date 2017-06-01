@@ -50,6 +50,8 @@ public abstract class TriggerParameter extends AbstractDescribableImpl<TriggerPa
         return value.getName().equals(name) && test(value.getValue());
     }
 
+    public abstract ParameterValue createValue();
+
     protected abstract boolean test(Object value);
 
 
@@ -65,6 +67,7 @@ public abstract class TriggerParameter extends AbstractDescribableImpl<TriggerPa
             return Jenkins.getInstance().getDescriptorList(TriggerParameter.class);
         }
 
+        @SuppressWarnings("unused") // used by config.jelly
         @Restricted(NoExternalUse.class)
         public final ComboBoxModel doFillNameItems(@AncestorInPath Job<?, ?> job) {
             ComboBoxModel model = new ComboBoxModel();

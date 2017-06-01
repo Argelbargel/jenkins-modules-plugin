@@ -3,7 +3,9 @@ package argelbargel.jenkins.plugins.modules.parameters;
 
 import hudson.Extension;
 import hudson.model.BooleanParameterDefinition;
+import hudson.model.BooleanParameterValue;
 import hudson.model.ParameterDefinition;
+import hudson.model.ParameterValue;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -12,7 +14,7 @@ import java.util.Collections;
 
 
 @SuppressWarnings("unused") // extension
-public class BooleanTriggerParameter extends TriggerParameter {
+public final class BooleanTriggerParameter extends TriggerParameter {
     private final Boolean expected;
 
     @DataBoundConstructor
@@ -24,6 +26,11 @@ public class BooleanTriggerParameter extends TriggerParameter {
     @SuppressWarnings("WeakerAccess") // used in config.jelly
     public Boolean getExpected() {
         return expected;
+    }
+
+    @Override
+    public ParameterValue createValue() {
+        return new BooleanParameterValue(getName(), expected);
     }
 
     @Override
