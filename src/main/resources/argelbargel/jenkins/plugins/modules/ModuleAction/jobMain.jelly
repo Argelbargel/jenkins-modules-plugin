@@ -20,9 +20,14 @@
     </d:taglib>
     <j:set var="upstream" value="${it.upstreamJobs}"/>
     <j:set var="downstream" value="${it.downstreamJobs}"/>
-    <j:if test="${not empty upstream or not empty downstream}">
-        <h2>${%Module} ${it.moduleName}</h2>
-        <local:list title="${%Upstream}" items="${upstream}" up="true"/>
-        <local:list title="${%Downstream}" items="${downstream}" up="false"/>
-    </j:if>
+    <h2>${%Module} ${it.moduleName}</h2>
+    <j:choose>
+        <j:when test="${not empty upstream or not empty downstream}">
+            <local:list title="${%Upstream}" items="${upstream}" up="true"/>
+            <local:list title="${%Downstream}" items="${downstream}" up="false"/>
+        </j:when>
+        <j:otherwise>
+            <p>-- no dependencies --</p>
+        </j:otherwise>
+    </j:choose>
 </j:jelly>
