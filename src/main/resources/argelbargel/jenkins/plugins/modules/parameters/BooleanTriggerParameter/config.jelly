@@ -3,7 +3,7 @@
     <f:entry title="${%Name}" field="name">
         <f:combobox/>
     </f:entry>
-    <f:entry title="${%Value}" field="expected">
+    <f:entry title="${%Value}" field="value">
         <f:checkbox/>
     </f:entry>
     <div align="right">

@@ -50,7 +50,7 @@ public abstract class TriggerParameter extends AbstractDescribableImpl<TriggerPa
         return value.getName().equals(name) && test(value.getValue());
     }
 
-    public abstract ParameterValue createValue();
+    public abstract ParameterValue createParameterValue();
 
     protected abstract boolean test(Object value);
 

@@ -146,7 +146,7 @@ class DownstreamTrigger {
         }
 
         for (TriggerParameter parameter : moduleTrigger.getDownstreamParameters()) {
-            values.add(parameter.createValue());
+            values.add(parameter.createParameterValue());
         }
 
         return values;
