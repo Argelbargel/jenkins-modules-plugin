@@ -29,7 +29,9 @@ import org.acegisecurity.Authentication;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static argelbargel.jenkins.plugins.modules.queue.RunUtils.getUncompletedRuns;
 
@@ -132,24 +134,25 @@ class DownstreamTrigger {
         return actions;
     }
 
-    private List<ParameterValue> createDownstreamParameters() {
-        List<ParameterValue> values = new ArrayList<>();
+    private Collection<ParameterValue> createDownstreamParameters() {
+        Map<String, ParameterValue> values = new HashMap<>();
         if (moduleTrigger.getTriggerWithCurrentParameters()) {
             ParametersAction action = upstreamBuild.getAction(ParametersAction.class);
             if (action != null) {
                 for (ParameterValue value : action.getParameters())
                     // FileParameterValue is currently not reusable, so omit these:
                     if (!(value instanceof FileParameterValue)) {
-                        values.add(value);
+                        values.put(value.getDescription(), value);
                     }
             }
         }
 
         for (TriggerParameter parameter : moduleTrigger.getDownstreamParameters()) {
-            values.add(parameter.createParameterValue());
+            ParameterValue value = parameter.createParameterValue();
+            values.put(value.getName(), value);
         }
 
-        return values;
+        return values.values();
     }
 
     private void triggerDownstreamBuild(Job<?, ?> job, Action[] actions) {
