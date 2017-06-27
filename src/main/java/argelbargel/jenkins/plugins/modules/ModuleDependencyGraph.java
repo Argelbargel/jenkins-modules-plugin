@@ -45,8 +45,18 @@ import static java.util.Collections.singleton;
 public final class ModuleDependencyGraph {
     private static final Comparator<ModuleDependency> COMPARE_DEPENDENCIES_BY_NAME = new Comparator<ModuleDependency>() {
         public int compare(ModuleDependency lhs, ModuleDependency rhs) {
-            int cmp = lhs.getUpstreamJob().getName().compareTo(rhs.getUpstreamJob().getName());
-            return cmp != 0 ? cmp : lhs.getDownstreamJob().getName().compareTo(rhs.getDownstreamJob().getName());
+            int cmp = compare(lhs.getUpstreamJob(), rhs.getUpstreamJob());
+            return cmp != 0 ? cmp : compare(lhs.getDownstreamJob(), rhs.getDownstreamJob());
+        }
+
+        private int compare(Job lhs, Job rhs) {
+            if (lhs == null) {
+                return rhs == null ? 0 : -1;
+            } else if (rhs == null) {
+                return 1;
+            }
+
+            return lhs.getName().compareTo(rhs.getName());
         }
     };
 
