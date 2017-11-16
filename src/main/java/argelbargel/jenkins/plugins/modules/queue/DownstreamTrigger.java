@@ -12,6 +12,7 @@ import hudson.model.Action;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
 import hudson.model.FileParameterValue;
+import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
@@ -19,12 +20,10 @@ import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.security.ACL;
+import hudson.security.ACLContext;
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
 import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
-import jenkins.security.QueueItemAuthenticatorConfiguration;
-import jenkins.security.QueueItemAuthenticatorDescriptor;
-import org.acegisecurity.Authentication;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -60,42 +59,20 @@ class DownstreamTrigger {
     }
 
     private void execute(final List<ModuleDependency> downstream) {
-        ACL.impersonate(checkAuth(downstream), new Runnable() {
-            @Override
-            public void run() {
-                for (ModuleDependency dep : downstream) {
-                    if (isNotAlreadyRunning(dep) && dep.shouldTriggerBuild()) {
-                        Collection<Action> actions = createDownstreamActions(dep.getDownstreamJob());
-                        triggerDownstreamBuild(dep.getDownstreamJob(), actions.toArray(new Action[actions.size()]));
+        try (ACLContext ctx = ACL.as(Jenkins.getAuthentication())) {
+            for (ModuleDependency dep : downstream) {
+                if (isNotAlreadyRunning(dep) && dep.shouldTriggerBuild()) {
+                    Job job = dep.getDownstreamJob();
+                    if (!job.hasPermission(Item.BUILD)) {
+                        logger.println(hudson.tasks.Messages.BuildTrigger_you_have_no_permission_to_build_(ModelHyperlinkNote.encodeTo(job)));
+                        continue;
                     }
-                }
-            }
-        });
-    }
 
-    private Authentication checkAuth(List<ModuleDependency> downstream) {
-        Authentication auth = Jenkins.getAuthentication(); // from build
-        if (auth.equals(ACL.SYSTEM)) { // i.e., unspecified
-            if (QueueItemAuthenticatorDescriptor.all().isEmpty()) {
-                if (!downstream.isEmpty()) {
-                    logger.println(hudson.tasks.Messages.BuildTrigger_warning_you_have_no_plugins_providing_ac());
+                    Collection<Action> actions = createDownstreamActions(job);
+                    triggerDownstreamBuild(job, actions.toArray(new Action[actions.size()]));
                 }
-            } else if (QueueItemAuthenticatorConfiguration.get().getAuthenticators().isEmpty()) {
-                if (!downstream.isEmpty()) {
-                    logger.println(hudson.tasks.Messages.BuildTrigger_warning_access_control_for_builds_in_glo());
-                }
-            } else {
-                // This warning must be printed even if downstream is empty.
-                // Otherwise you could effectively escalate DISCOVER to READ just by trying different project names and checking whether a warning was printed or not.
-                // If there were an API to determine whether any DependencyDeclarer’s in this project requested downstream project names,
-                // then we could suppress the warnings in case none did; but if any do, yet Items.fromNameList etc. ignore unknown projects,
-                // that has to be treated the same as if there really are downstream projects but the anonymous user cannot see them.
-                // For the above two cases, it is OK to suppress the warning when there are no downstream projects, since running as SYSTEM we would be able to see them anyway.
-                logger.println(hudson.tasks.Messages.BuildTrigger_warning_this_build_has_no_associated_aut());
-                return Jenkins.ANONYMOUS;
             }
         }
-        return auth;
     }
 
     private boolean isNotAlreadyRunning(ModuleDependency dep) {

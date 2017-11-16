@@ -31,27 +31,39 @@ public class StartedBySameGitlabUserPredicateTest {
     private CauseData createCauseData(String user) throws Exception {
         Constructor<CauseData> constructor = makeCauseDataConstructorAccessible();
         return constructor.newInstance(
-                ActionType.PUSH,
-                0, 0,
-                "master", "master",
-                "", "",
-                "", "", "", "", "", "",
-                "", "", 0, 0,
-                "master",
-                "", "", "", "",
-                user,
-                "", "", "", "", ""
+                ActionType.PUSH, 0, 0,
+                "master", "master", "",
+                "", "", "",
+                "", "", "",
+                "", "", "",
+                0, 0, 0,
+                "master", "", "",
+                "", "", user,
+                "", "", "",
+                "", "", "",
+                "", "", "",
+                "", "", "",
+                "", "", "",
+                "", ""
         );
     }
 
     private Constructor<CauseData> makeCauseDataConstructorAccessible() throws NoSuchMethodException {
         Constructor<CauseData> constructor = CauseData.class.getDeclaredConstructor(
-                ActionType.class, Integer.class, Integer.class, String.class, String.class, String.class,
-                String.class, String.class, String.class, String.class, String.class,
-                String.class, String.class, String.class, String.class, Integer.class,
-                Integer.class, String.class, String.class, String.class, String.class,
-                String.class, String.class, String.class, String.class, String.class, String.class,
-                String.class
+                ActionType.class, Integer.class, Integer.class,
+                String.class, String.class, String.class,
+                String.class, String.class, String.class,
+                String.class, String.class, String.class,
+                String.class, String.class, String.class,
+                Integer.class, Integer.class, Integer.class,
+                String.class, String.class, String.class,
+                String.class, String.class, String.class,
+                String.class, String.class, String.class,
+                String.class, String.class, String.class,
+                String.class, String.class, String.class,
+                String.class, String.class, String.class,
+                String.class, String.class, String.class,
+                String.class, String.class
         );
         constructor.setAccessible(true);
         return constructor;
