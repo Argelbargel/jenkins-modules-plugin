@@ -4,72 +4,41 @@ package argelbargel.jenkins.plugins.modules.views;
 import argelbargel.jenkins.plugins.modules.Messages;
 import argelbargel.jenkins.plugins.modules.ModuleAction;
 import argelbargel.jenkins.plugins.modules.queue.ModuleBlockedAction;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.Actionable;
 import hudson.model.Descriptor;
 import hudson.model.Queue;
 import hudson.model.TopLevelItem;
-import hudson.model.View;
-import hudson.util.ListBoxModel;
+import hudson.views.AbstractIncludeExcludeJobFilter;
 import hudson.views.ViewJobFilter;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
-import java.util.List;
-
-import static argelbargel.jenkins.plugins.modules.views.ModuleViewFilter.Mode.ALL;
-import static argelbargel.jenkins.plugins.modules.views.ModuleViewFilter.Mode.IGNORE_BLOCKED;
 
 
 @SuppressWarnings("unused") // extension
-public final class ModuleViewFilter extends ViewJobFilter {
-    enum Mode {
-        ALL(Messages.ModuleViewFilter_Mode_ShowAllModules()),
-        BLOCKED_ONLY(Messages.ModuleViewFilter_Mode_BlockedOnly()),
-        IGNORE_BLOCKED(Messages.ModuleViewFilter_Mode_IgnoreBlocked());
-
-        private final String displayName;
-
-        Mode(String name) {
-            this.displayName = name;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-    }
-
-    private final Mode mode;
+public final class ModuleViewFilter extends AbstractIncludeExcludeJobFilter {
+    private boolean matchOnlyBlocked;
 
     @DataBoundConstructor
-    public ModuleViewFilter(String mode) {
-        this.mode = Mode.valueOf(mode);
+    public ModuleViewFilter(String includeExcludeTypeString, boolean matchOnlyBlocked) {
+        super(includeExcludeTypeString);
+        this.matchOnlyBlocked = matchOnlyBlocked;
     }
 
-    public String getMode() {
-        return mode.name();
+    public boolean getMatchOnlyBlocked() {
+        return matchOnlyBlocked;
     }
 
     @Override
-    public List<TopLevelItem> filter(List<TopLevelItem> added, List<TopLevelItem> all, View filteringView) {
-        for (TopLevelItem item : all) {
-            if (item instanceof Actionable && ((Actionable) item).getAction(ModuleAction.class) != null) {
-                if (!accept(item)) {
-                    added.remove(item);
-                } else if (!added.contains(item)) {
-                    added.add(item);
-                }
-            }
-        }
+    protected boolean matches(TopLevelItem item) {
+        return isModule(item) && (!matchOnlyBlocked || isBlocked(item));
 
-        return added;
     }
 
-    @SuppressFBWarnings
-    private boolean accept(TopLevelItem item) {
-        return ALL.equals(mode) || (IGNORE_BLOCKED.equals(mode) || isBlocked(item));
+    private boolean isModule(TopLevelItem item) {
+        return item instanceof Actionable && ((Actionable) item).getAction(ModuleAction.class) != null;
     }
 
     private boolean isBlocked(TopLevelItem item) {
@@ -88,15 +57,6 @@ public final class ModuleViewFilter extends ViewJobFilter {
         @Override
         public String getDisplayName() {
             return Messages.ModuleViewFilter_DisplayName();
-        }
-
-        public ListBoxModel doFillModeItems() {
-            ListBoxModel model = new ListBoxModel();
-            for (Mode mode : Mode.values()) {
-                model.add(mode.getDisplayName(), mode.name());
-            }
-
-            return model;
         }
     }
 }
