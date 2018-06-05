@@ -2,5 +2,6 @@
 .gradle/
 .vagrant/
 build/
+out/
 deploy_key
 *.log

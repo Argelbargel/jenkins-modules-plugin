@@ -1,3 +1,5 @@
+import jdk.nashorn.api.scripting.ClassFilter
+
 buildscript {
     repositories {
         mavenCentral()
@@ -6,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'argelbargel.gradle.plugins:gradle-jpi-plugin:0.24.3'
+        classpath 'argelbargel.gradle.plugins:gradle-jpi-plugin:0.24.4'
     }
 }
 
@@ -46,7 +48,7 @@ targetCompatibility = 1.7
 
 jenkinsPlugin {
     // version of Jenkins core this plugin depends on, must be 1.420 or later
-    coreVersion = '2.90'
+    coreVersion = '2.126'
 
     // ID of the plugin, defaults to the project name without trailing '-plugin'
     shortName = archivesBaseName
@@ -62,6 +64,8 @@ jenkinsPlugin {
 
     // use the plugin class loader before the core class loader, defaults to false
     pluginFirstClassLoader = true
+
+    whitelistClasses = true
 
     // set the directory from which the development server will run, defaults to 'work'
     workDir = file("$buildDir/jenkins")
@@ -111,8 +115,25 @@ dependencies {
     testCompile 'org.mockito:mockito-core:2.7.22'
     testCompile 'org.powermock:powermock-module-junit4:1.7.0RC4'
     testCompile 'org.powermock:powermock-api-mockito2:1.7.0RC4'
-    optionalJenkinsPlugins 'org.jenkins-ci.plugins:gitlab-plugin:1.5.1@jar'
-    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-job:2.11@jar'
-    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-api:2.13@jar'
-    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-cps:2.30@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins:credentials:2.1.16@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins:git:3.9.0@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins:gitlab-plugin:1.5.6@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-aggregator:2.5@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-cps:2.53@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-cps-global-lib:2.9@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-multibranch:2.19@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins:pipeline-utility-steps:2.1.0@jar'
+    optionalJenkinsPlugins 'com.sonyericsson.hudson.plugins.rebuild:rebuild:1.28@jar'
+    optionalJenkinsPlugins 'org.6wind.jenkins:lockable-resources:2.2@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins:timestamper:1.8.10@jar'
+    optionalJenkinsPlugins 'org.jvnet.hudson.plugins:checkstyle:3.50@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins:junit:1.24@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins:jacoco:3.0.1@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins:cucumber-testresult-plugin:0.10.1@jar'
+    optionalJenkinsPlugins 'org.jvnet.hudson.plugins:dry:2.50@jar'
+    optionalJenkinsPlugins 'org.jvnet.hudson.plugins:findbugs:4.72@jar'
+    optionalJenkinsPlugins 'org.jvnet.hudson.plugins:tasks:4.52@jar'
+    optionalJenkinsPlugins 'org.jvnet.hudson.plugins:warnings:4.67@jar'
+    optionalJenkinsPlugins 'org.jvnet.hudson.plugins:analysis-collector:1.52@jar'
+
 }

@@ -5,7 +5,6 @@ import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter;
 import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter.TriggerParameterDescriptor;
 import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate;
 import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate.ActionsPredicateDescriptor;
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Item;
@@ -18,7 +17,6 @@ import hudson.triggers.TriggerDescriptor;
 import hudson.util.ComboBoxModel;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import hudson.util.XStream2;
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
 import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
@@ -58,10 +56,6 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     private boolean triggerWithCurrentParameters;
     private List<TriggerParameter> triggerParameters;
     private List<TriggerParameter> downstreamParameters;
-
-    @Deprecated // >= 0.9.1
-    @SuppressWarnings({"DeprecatedIsStillUsed", "unused"})
-    private transient Boolean triggerDownstreamWithCurrentParameters;
 
 
     @DataBoundConstructor
@@ -275,22 +269,6 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         @SuppressWarnings("unused") // used by config.jelly
         public ListBoxModel doFillTriggerResultItems() {
             return getTriggerResultItems();
-        }
-    }
-
-
-    @Deprecated // >= 0.9.1
-    @SuppressWarnings({"deprecation", "unused"})
-    public static final class ConverterImpl extends XStream2.PassthruConverter<ModuleTrigger> {
-        public ConverterImpl(XStream2 xstream) {
-            super(xstream);
-        }
-
-        @Override
-        protected void callback(ModuleTrigger obj, UnmarshallingContext context) {
-            if (obj.triggerDownstreamWithCurrentParameters != null) {
-                obj.triggerWithCurrentParameters = obj.triggerDownstreamWithCurrentParameters;
-            }
         }
     }
 }
