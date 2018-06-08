@@ -1,0 +1,37 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:entry title="${%Module}" field="name">
+        <f:combobox/>
+        <j:if test="${not empty instance.name}">
+            <j:choose>
+                <j:when test="${not empty instance.jobs}">
+                    <div>
+                        <b>Matching jobs:</b>
+                        <ul>
+                            <j:forEach items="${instance.jobs}" var="job">
+                                <li>
+                                    <a href="/${job.url}">${job.fullDisplayName}</a>
+                                </li>
+                            </j:forEach>
+                        </ul>
+                    </div>
+                </j:when>
+                <j:otherwise>
+                    <div>
+                        (no project yet)
+                    </div>
+                </j:otherwise>
+            </j:choose>
+        </j:if>
+    </f:entry>
+    <f:advanced>
+        <f:entry title="${%Predicates}" field="predicates">
+            <f:hetero-list name="predicates" items="${instance.predicates}" hasHeader="true"
+                           descriptors="${descriptor.predicateDescriptors}"
+                           targetType="${argelbargel.jenkins.plugins.modules.UpstreamPredicate.class}"/>
+        </f:entry>
+    </f:advanced>
+    <div align="right">
+        <f:repeatableDeleteButton/>
+    </div>
+</j:jelly>

@@ -30,7 +30,7 @@ public final class OrQueuePredicate extends CombinedQueuePredicate {
 
     @Extension
     @Symbol("orQueuePredicate")
-    public static final class DescriptorImpl extends ActionsPredicateDescriptor {
+    public static final class DescriptorImpl extends QueuePredicateDescriptor {
         @Nonnull
         @Override
         public String getDisplayName() {

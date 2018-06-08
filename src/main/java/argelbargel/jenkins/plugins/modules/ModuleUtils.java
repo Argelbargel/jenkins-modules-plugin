@@ -2,44 +2,43 @@ package argelbargel.jenkins.plugins.modules;
 
 
 import hudson.model.Job;
+import jenkins.model.Jenkins;
 
+import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import static argelbargel.jenkins.plugins.modules.ModuleAction.getModuleAction;
+import static argelbargel.jenkins.plugins.modules.UpstreamDependency.names;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toSet;
 
 
 final class ModuleUtils {
     static Set<String> allModuleNames() {
         Set<String> names = new HashSet<>();
-        for (ModuleAction module : ModuleAction.all()) {
-            names.add(module.getModuleName());
-            names.addAll(module.getDependencies());
-        }
-
+        all().forEach(module -> {
+                    names.add(module.getModuleName());
+                    names.addAll(module.getUpstreamDependencies().stream().map(UpstreamDependency::getName).collect(toSet()));
+                }
+        );
         return names;
     }
 
     static Set<String> allModuleNamesWithJobs() {
-        Set<ModuleAction> all = ModuleAction.all();
-        Set<String> names = new HashSet<>(all.size());
-        for (ModuleAction module : all) {
-            names.add(module.getModuleName());
-        }
-
-        return names;
+        return all().map(ModuleAction::getModuleName).collect(toSet());
     }
 
-    static String findModule(Job<?, ?> job) {
-        ModuleAction module = ModuleAction.get(job);
-        return module != null ? module.getModuleName() : null;
+    static Collection<Job<?, ?>> findJobs(String name, Predicate<Job<?, ?>> predicate) {
+        return withName(name).map(ModuleAction::getJob).filter(predicate).collect(toSet());
     }
 
-    static Job<?, ?> findProject(String name) {
-        ModuleAction module = ModuleAction.get(name);
-        return module != null ? module.getJob() : null;
-    }
-
-    static boolean moduleExists(String name) {
-        return ModuleAction.get(name) != null;
+    static Collection<Job<?, ?>> findJobs(String name) {
+        return findJobs(name, j -> true);
     }
 
     static Set<String> buildDownstream(String name) {
@@ -48,12 +47,25 @@ final class ModuleUtils {
         return upstream;
     }
 
+    private static Stream<ModuleAction> all() {
+        return Jenkins.get().getAllItems(Job.class).stream()
+                .map(j -> ofNullable(getModuleAction(j)))
+                .filter(Optional::isPresent)
+                .map(Optional::get);
+    }
+
+    private static Stream<ModuleAction> withName(@Nonnull String name) {
+        return all().filter(m -> name.equals(m.getModuleName()));
+    }
+
     private static void buildDownstream(Set<String> downstream, String name) {
-        ModuleAction module = ModuleAction.get(name);
-        if (module != null && !downstream.contains(module.getModuleName()) && module.getDependencies().contains(name)) {
-            downstream.add(module.getModuleName());
-            buildDownstream(downstream, module.getModuleName());
-        }
+        withName(name)
+                .filter(m -> !downstream.contains(m.getModuleName()) && names(m.getUpstreamDependencies()).contains(name))
+                .map(ModuleAction::getModuleName)
+                .forEach(n -> {
+                    downstream.add(n);
+                    buildDownstream(downstream, n);
+                });
     }
 
     static Set<String> buildUpstream(String name) {
@@ -63,16 +75,16 @@ final class ModuleUtils {
     }
 
     private static void buildUpstream(Set<String> upstream, String name) {
-        ModuleAction module = ModuleAction.get(name);
-        if (module != null) {
-            for (String dep : module.getDependencies()) {
-                if (!upstream.contains(dep)) {
-                    upstream.add(dep);
-                    buildUpstream(upstream, dep);
-                }
-            }
-        }
+        withName(name)
+                .flatMap(m -> m.getUpstreamDependencies().stream())
+                .map(UpstreamDependency::getName)
+                .filter(d -> !upstream.contains(d))
+                .forEach(d -> {
+                    upstream.add(d);
+                    buildUpstream(upstream, d);
+                });
     }
 
     private ModuleUtils() { /* no instances allowed */ }
+
 }

@@ -43,8 +43,8 @@ publishing {
 }
 
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 jenkinsPlugin {
     // version of Jenkins core this plugin depends on, must be 1.420 or later
@@ -112,16 +112,20 @@ dependencies {
     compile 'org.jgrapht:jgrapht-jdk1.5:0.7.3'
     compile 'com.google.code.gson:gson:2.7'
     compile 'org.jenkins-ci.plugins:view-job-filters:1.27@jar'
+    compile 'org.jenkins-ci.plugins:variant:1.1@jar'
     testCompile 'org.mockito:mockito-core:2.7.22'
     testCompile 'org.powermock:powermock-module-junit4:1.7.0RC4'
     testCompile 'org.powermock:powermock-api-mockito2:1.7.0RC4'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins:branch-api:2.0.20@jar'
     optionalJenkinsPlugins 'org.jenkins-ci.plugins:credentials:2.1.16@jar'
     optionalJenkinsPlugins 'org.jenkins-ci.plugins:git:3.9.0@jar'
     optionalJenkinsPlugins 'org.jenkins-ci.plugins:gitlab-plugin:1.5.6@jar'
     optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-aggregator:2.5@jar'
     optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-cps:2.53@jar'
     optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-cps-global-lib:2.9@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-job:2.21@jar'
     optionalJenkinsPlugins 'org.jenkins-ci.plugins.workflow:workflow-multibranch:2.19@jar'
+    optionalJenkinsPlugins 'org.jenkins-ci.plugins:scm-api:2.2.7@jar'
     optionalJenkinsPlugins 'org.jenkins-ci.plugins:pipeline-utility-steps:2.1.0@jar'
     optionalJenkinsPlugins 'com.sonyericsson.hudson.plugins.rebuild:rebuild:1.28@jar'
     optionalJenkinsPlugins 'org.6wind.jenkins:lockable-resources:2.2@jar'

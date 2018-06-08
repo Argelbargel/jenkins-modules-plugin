@@ -104,7 +104,7 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     private void block(long queueId, Job task, Integer build) {
-        blockers.put(queueId, new Blocker(queueId, ModuleAction.get(task).getModuleName(), task.getFullName(), build, task.getUrl()));
+        blockers.put(queueId, new Blocker(queueId, task.getAction(ModuleAction.class).getModuleName(), task.getFullName(), build, task.getUrl()));
     }
 
     // use queue-id and build-number so we still show correct data after restarts

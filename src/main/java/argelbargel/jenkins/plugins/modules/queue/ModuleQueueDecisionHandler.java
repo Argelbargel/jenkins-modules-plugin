@@ -24,7 +24,7 @@ public final class ModuleQueueDecisionHandler extends QueueDecisionHandler {
 
     @Override
     public boolean shouldSchedule(Task task, List<Action> actions) {
-        return !Actionable.class.isInstance(task) || shouldSchedule(task, ModuleAction.get((Actionable) task), actions);
+        return !Actionable.class.isInstance(task) || shouldSchedule(task, ((Actionable) task).getAction(ModuleAction.class), actions);
     }
 
     private boolean shouldSchedule(Task task, ModuleAction module, List<Action> actions) {
@@ -33,7 +33,7 @@ public final class ModuleQueueDecisionHandler extends QueueDecisionHandler {
 
     private boolean shouldSchedule(Task task, QueuePredicate predicate, List<Action> actions) {
         // only schedule new build when there's no matching build already queued
-        Item queued = filter(predicate, actions, Jenkins.getInstance().getQueue().getItems(task));
+        Item queued = filter(predicate, actions, Jenkins.get().getQueue().getItems(task));
         if (queued != null) {
             LOGGER.info("will not schedule " + task.getFullDisplayName() + " as " + queued.task.getFullDisplayName() + " is already queued");
             foldActionsInto(queued, actions);

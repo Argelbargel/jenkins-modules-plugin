@@ -10,7 +10,6 @@ import jenkins.util.DirectedGraph;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,20 +65,17 @@ public final class ModuleDependencyGraph {
     @Initializer(after = InitMilestone.JOB_LOADED)
     @SuppressWarnings("WeakerAccess") // must be public to be detected as initializer
     public static void rebuild() {
-        ACL.impersonate(ACL.SYSTEM, new Runnable() {
-            @Override
-            public void run() {
-                ModuleDependencyGraph graph = build(new ModuleDependencyGraph());
+        ACL.impersonate(ACL.SYSTEM, () -> {
+            ModuleDependencyGraph graph = build(new ModuleDependencyGraph());
 
-                synchronized (LOCK) {
-                    instance = graph;
-                }
+            synchronized (LOCK) {
+                instance = graph;
             }
         });
     }
 
     private static ModuleDependencyGraph build(ModuleDependencyGraph graph) {
-        for (Job job : Jenkins.getInstance().getAllItems(Job.class)) {
+        for (Job job : Jenkins.get().getAllItems(Job.class)) {
             ModuleTrigger trigger = ModuleTrigger.get(job);
             if (trigger != null) {
                 trigger.addUpstreamDependencies(graph, job);
@@ -121,11 +117,7 @@ public final class ModuleDependencyGraph {
         }
 
 
-        Collections.sort(roots, new Comparator<Job>() {
-            public int compare(Job lhs, Job rhs) {
-                return getTransitiveDownstream(rhs).size() - getTransitiveDownstream(lhs).size();
-            }
-        });
+        roots.sort((lhs, rhs) -> getTransitiveDownstream(rhs).size() - getTransitiveDownstream(lhs).size());
 
         return roots;
     }
@@ -137,11 +129,9 @@ public final class ModuleDependencyGraph {
 
         List<ModuleDependency> downstream = new ArrayList<>(forward.get(job));
         // Sort topologically
-        Collections.sort(downstream, new Comparator<ModuleDependency>() {
-            public int compare(ModuleDependency lhs, ModuleDependency rhs) {
-                // Swapping lhs/rhs to get reverse sort:
-                return topologicalOrder.compare(rhs.getDownstreamJob(), lhs.getDownstreamJob());
-            }
+        downstream.sort((lhs, rhs) -> {
+            // Swapping lhs/rhs to get reverse sort:
+            return topologicalOrder.compare(rhs.getDownstreamJob(), lhs.getDownstreamJob());
         });
 
         return downstream;
@@ -225,10 +215,14 @@ public final class ModuleDependencyGraph {
         return false;
     }
 
+    void addUpstreamDependency(Job upstream, Job downstream) {
+        addDependency(new ModuleDependency(upstream, downstream));
+    }
+
     /**
      * Called during the dependency graph build phase to add a dependency edge.
      */
-    void addDependency(ModuleDependency dep) {
+    private void addDependency(ModuleDependency dep) {
         add(forward, dep.getUpstreamJob(), dep);
         add(backward, dep.getDownstreamJob(), dep);
     }
@@ -272,12 +266,7 @@ public final class ModuleDependencyGraph {
     }
 
     private void add(Map<Job, Set<ModuleDependency>> map, Job key, ModuleDependency dep) {
-        Set<ModuleDependency> set = map.get(key);
-        if (set == null) {
-            set = new TreeSet<>(COMPARE_DEPENDENCIES_BY_NAME);
-            map.put(key, set);
-        }
-
+        Set<ModuleDependency> set = map.computeIfAbsent(key, k -> new TreeSet<>(COMPARE_DEPENDENCIES_BY_NAME));
         set.add(dep);
     }
 
@@ -308,11 +297,6 @@ public final class ModuleDependencyGraph {
             }
         }
 
-        topologicalOrder = new Comparator<Job<?, ?>>() {
-            @Override
-            public int compare(Job<?, ?> o1, Job<?, ?> o2) {
-                return topoOrder.get(o1) - topoOrder.get(o2);
-            }
-        };
+        topologicalOrder = Comparator.comparingInt(topoOrder::get);
     }
 }

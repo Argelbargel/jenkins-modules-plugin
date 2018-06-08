@@ -36,7 +36,7 @@ public class StartedWithSameBuildParametersQueuePredicate extends SingleActionQu
 
     @Extension
     @Symbol("startedWithSameBuildParameters")
-    public static final class DescriptorImpl extends ActionsPredicateDescriptor {
+    public static final class DescriptorImpl extends QueuePredicateDescriptor {
         @Nonnull
         @Override
         public String getDisplayName() {

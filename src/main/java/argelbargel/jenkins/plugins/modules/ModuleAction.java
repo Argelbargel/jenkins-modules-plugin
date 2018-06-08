@@ -3,53 +3,36 @@ package argelbargel.jenkins.plugins.modules;
 
 import argelbargel.jenkins.plugins.modules.queue.predicates.AndQueuePredicate;
 import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import hudson.model.Actionable;
 import hudson.model.InvisibleAction;
 import hudson.model.Job;
+import hudson.util.XStream2;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import javax.annotation.Nonnull;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildUpstream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 
 public final class ModuleAction extends InvisibleAction {
-    public static ModuleAction get(@Nonnull Actionable actionable) {
+    public static ModuleAction getModuleAction(@Nonnull Actionable actionable) {
         return actionable.getAction(ModuleAction.class);
     }
 
-    public static ModuleAction get(@Nonnull String name) {
-        for (ModuleAction module : all()) {
-            if (name.equals(module.getModuleName())) {
-                return module;
-            }
-        }
-
-        return null;
-    }
-
-    static Set<ModuleAction> all() {
-        Set<ModuleAction> all = new HashSet<>();
-        for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
-            ModuleAction module = job.getAction(ModuleAction.class);
-            if (module != null) {
-                all.add(module);
-            }
-        }
-
-        return all;
-    }
-
     private final String name;
+    private Set<UpstreamDependency> upstreamDependencies;
+    @Deprecated
     private Set<String> dependencies;
     private List<QueuePredicate> predicates;
     private long waitInterval;
@@ -58,6 +41,7 @@ public final class ModuleAction extends InvisibleAction {
     ModuleAction(String name) {
         this.name = name;
         this.dependencies = emptySet();
+        this.upstreamDependencies = emptySet();
         this.predicates = emptyList();
         this.waitInterval = 0;
     }
@@ -70,14 +54,11 @@ public final class ModuleAction extends InvisibleAction {
         return new AndQueuePredicate(predicates);
     }
 
+    @Nonnull
     public Job<?, ?> getJob() {
-        for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
-            if (equals(job.getAction(ModuleAction.class))) {
-                return job;
-            }
-        }
-
-        return null;
+        return Jenkins.get().getAllItems(Job.class).stream()
+                .filter(j -> ofNullable(getModuleAction(j)).filter(this::equals).isPresent())
+                .findFirst().orElseThrow(IllegalStateException::new);
     }
 
     @SuppressWarnings("unused") // used by jobMain.jelly
@@ -93,31 +74,32 @@ public final class ModuleAction extends InvisibleAction {
     @Restricted(NoExternalUse.class)
     @SuppressWarnings("unused") // used by jobMain.jelly
     public String moduleName(Job job) {
-        return ModuleAction.get(job).getModuleName();
+        return getModuleAction(job).getModuleName();
     }
 
     public long getDependencyWaitInterval() {
         return waitInterval;
     }
 
-    Set<String> getDependencies() {
-        return dependencies;
+    void addUpstreamDependencies(ModuleDependencyGraph graph, Job owner) {
+        upstreamDependencies.forEach(d -> d.addUpstreamDependencies(graph, owner));
     }
 
-    void setDependencies(Set<String> dependencies) {
-        this.dependencies = new HashSet<>(dependencies.size());
-        for (String dependency : dependencies) {
-            if (StringUtils.isNotBlank(dependency) && !buildUpstream(dependency).contains(name)) {
-                this.dependencies.add(dependency);
-            }
-        }
+    Set<UpstreamDependency> getUpstreamDependencies() {
+        return upstreamDependencies;
     }
 
-    List<QueuePredicate> getPredicates() {
+    void setUpstreamDependencies(Collection<UpstreamDependency> dependencies) {
+        this.upstreamDependencies = dependencies.stream()
+                .filter(d -> isNotBlank(d.getName()) && !buildUpstream(d.getName()).contains(name))
+                .collect(toSet());
+    }
+
+    List<QueuePredicate> getQueuePredicates() {
         return predicates;
     }
 
-    void setPredicates(List<QueuePredicate> predicates) {
+    void setQueuePredicates(List<QueuePredicate> predicates) {
         this.predicates = predicates;
     }
 
@@ -125,20 +107,27 @@ public final class ModuleAction extends InvisibleAction {
         waitInterval = millisecs;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
+
+    @Deprecated // >= 0.9.1
+    @SuppressWarnings({"deprecation", "unused"})
+    public static final class ConverterImpl extends XStream2.PassthruConverter<ModuleAction> {
+        public ConverterImpl(XStream2 xstream) {
+            super(xstream);
         }
-        if (!(o instanceof ModuleAction)) {
-            return false;
+
+        @Override
+        protected void callback(ModuleAction obj, UnmarshallingContext context) {
+            if (obj.dependencies != null) {
+                obj.upstreamDependencies = wrap(obj.dependencies);
+            }
         }
-        ModuleAction that = (ModuleAction) o;
-        return Objects.equals(name, that.name);
+
+        @Deprecated
+        private Set<UpstreamDependency> wrap(Set<String> names) {
+            return names.stream()
+                    .map(UpstreamDependency::new)
+                    .collect(toSet());
+        }
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
-    }
 }

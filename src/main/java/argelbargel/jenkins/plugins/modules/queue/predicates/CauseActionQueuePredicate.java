@@ -63,7 +63,7 @@ public abstract class CauseActionQueuePredicate<CAUSE extends Cause> extends Sin
     }
 
     @SuppressWarnings("WeakerAccess") // part of public API
-    protected static abstract class CauseActionPredicateDescriptor extends ActionsPredicateDescriptor {
+    protected static abstract class CauseActionPredicateDescriptor extends QueuePredicateDescriptor {
 
     }
 }

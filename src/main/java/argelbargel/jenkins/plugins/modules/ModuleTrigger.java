@@ -4,7 +4,7 @@ package argelbargel.jenkins.plugins.modules;
 import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter;
 import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter.TriggerParameterDescriptor;
 import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate;
-import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate.ActionsPredicateDescriptor;
+import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate.QueuePredicateDescriptor;
 import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Item;
@@ -33,14 +33,15 @@ import org.kohsuke.stapler.Stapler;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static argelbargel.jenkins.plugins.modules.DescriptorUtils.getTriggerResultItems;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.allModuleNames;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.allModuleNamesWithJobs;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildUpstream;
-import static argelbargel.jenkins.plugins.modules.ModuleUtils.findProject;
-import static argelbargel.jenkins.plugins.modules.ModuleUtils.moduleExists;
+import static argelbargel.jenkins.plugins.modules.ModuleUtils.findJobs;
+import static argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate.QueuePredicateDescriptor.getAllQueuePredicateDescriptors;
 import static hudson.model.Result.SUCCESS;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -74,13 +75,13 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     }
 
     @SuppressWarnings("unused") // used by config.jelly
-    public Collection<UpstreamDependencyDescribable> getDependencies() {
-        return UpstreamDependencyDescribable.wrap(action.getDependencies());
+    public Collection<UpstreamDependency> getUpstreamDependencies() {
+        return action.getUpstreamDependencies();
     }
 
     @DataBoundSetter
-    public void setDependencies(List<UpstreamDependencyDescribable> deps) {
-        action.setDependencies(UpstreamDependencyDescribable.unwrap(deps));
+    public void setUpstreamDependencies(List<UpstreamDependency> deps) {
+        action.setUpstreamDependencies(deps);
     }
 
     @SuppressWarnings("unused") // used by config.jelly
@@ -103,13 +104,13 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         triggerResult = result;
     }
 
-    public List<QueuePredicate> getPredicates() {
-        return action.getPredicates();
+    public List<QueuePredicate> getQueuePredicates() {
+        return action.getQueuePredicates();
     }
 
     @DataBoundSetter
-    public void setPredicates(List<QueuePredicate> predicates) {
-        action.setPredicates(predicates);
+    public void setQueuePredicates(List<QueuePredicate> predicates) {
+        action.setQueuePredicates(predicates);
     }
 
     @DataBoundSetter
@@ -184,12 +185,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     }
 
     void addUpstreamDependencies(ModuleDependencyGraph graph, Job<?, ?> owner) {
-        for (String dependency : action.getDependencies()) {
-            ModuleAction module = ModuleAction.get(dependency);
-            if (module != null) {
-                graph.addDependency(new ModuleDependency(module.getJob(), owner));
-            }
-        }
+        action.addUpstreamDependencies(graph, owner);
     }
 
 
@@ -208,8 +204,8 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         }
 
         @SuppressWarnings("unused") // used by config.jelly
-        public List<ActionsPredicateDescriptor> getPredicateDescriptors() {
-            return ActionsPredicateDescriptor.getAll();
+        public List<QueuePredicateDescriptor> getQueuePredicateDescriptors() {
+            return getAllQueuePredicateDescriptors();
         }
 
         @SuppressWarnings("unused") // used by config.jelly
@@ -238,7 +234,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         }
 
         private ModuleTriggerDefaults getDefaults() {
-            return Jenkins.getInstance().getDescriptorByType(ModuleTriggerDefaults.class);
+            return Jenkins.get().getDescriptorByType(ModuleTriggerDefaults.class);
         }
 
         @Restricted(NoExternalUse.class)
@@ -248,11 +244,27 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
                 return FormValidation.error("module name must not be blank");
             }
 
-            if (moduleExists(moduleName) && !context.equals(findProject(moduleName))) {
-                return FormValidation.error("a module with the name " + moduleName + " already exists");
+            Optional<Job<?, ?>> duplicate = findJobs(moduleName).stream()
+                    .filter(j -> !isSameItemOrHasSameGroup(context, j))
+                    .findAny();
+
+            if (duplicate.isPresent()) {
+                return FormValidation.error("a module with the name " + moduleName + " already exists at " + duplicate.get().getParent().getFullDisplayName());
             }
 
             return FormValidation.ok();
+        }
+
+        private boolean isSameItemOrHasSameGroup(Item a, Item b) {
+            if (a.equals(b)) {
+                return true;
+            }
+
+            if (a.getParent().equals(b.getParent())) {
+                return !a.getParent().equals(Jenkins.get().getItemGroup());
+            }
+
+            return false;
         }
 
         @Restricted(NoExternalUse.class)

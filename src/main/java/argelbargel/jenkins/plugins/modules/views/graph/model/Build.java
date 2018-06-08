@@ -1,7 +1,6 @@
 package argelbargel.jenkins.plugins.modules.views.graph.model;
 
 
-import argelbargel.jenkins.plugins.modules.ModuleAction;
 import hudson.model.BallColor;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
@@ -11,6 +10,7 @@ import java.text.DateFormat;
 import java.util.LinkedList;
 import java.util.List;
 
+import static argelbargel.jenkins.plugins.modules.ModuleAction.getModuleAction;
 import static java.lang.Math.round;
 import static java.lang.System.currentTimeMillis;
 
@@ -26,7 +26,7 @@ public class Build extends Node<Run> {
     }
 
     public String getTitle() {
-        return ModuleAction.get(payload().getParent()).getModuleName() + " #" + payload().getNumber();
+        return getModuleAction(payload().getParent()).getModuleName() + " #" + payload().getNumber();
     }
 
     public String getDescription() {

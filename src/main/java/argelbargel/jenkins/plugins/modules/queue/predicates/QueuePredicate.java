@@ -43,9 +43,9 @@ public abstract class QueuePredicate extends AbstractDescribableImpl<QueuePredic
     protected abstract boolean test(@Nonnull Actions reason, @Nonnull Actions subject);
 
 
-    public static abstract class ActionsPredicateDescriptor extends Descriptor<QueuePredicate> {
-        public static List<ActionsPredicateDescriptor> getAll() {
-            return Jenkins.getInstance().getDescriptorList(QueuePredicate.class);
+    public static abstract class QueuePredicateDescriptor extends Descriptor<QueuePredicate> {
+        public static List<QueuePredicateDescriptor> getAllQueuePredicateDescriptors() {
+            return Jenkins.get().getDescriptorList(QueuePredicate.class);
         }
     }
 

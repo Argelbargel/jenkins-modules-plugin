@@ -3,15 +3,15 @@
     <f:entry title="${%Module-Name}" field="moduleName">
         <f:combobox value="${instance.moduleName ?: descriptor.jobName}"/>
     </f:entry>
-    <f:entry title="${%Upstream dependencies}" field="dependencies">
-        <f:repeatableProperty field="dependencies"/>
+    <f:entry title="${%Upstream dependencies}" field="upstreamDependencies">
+        <f:repeatableProperty field="upstreamDependencies"/>
     </f:entry>
     <f:entry title="${%Builds wait for upstream}" field="dependencyWaitInterval">
         <f:textbox default="${descriptor.dependencyWaitInterval}"/>
     </f:entry>
-    <f:entry title="${%Builds are blocked by upstream when}" field="predicates">
-        <f:hetero-list name="predicates" items="${instance.predicates}" hasHeader="true"
-                       descriptors="${descriptor.predicateDescriptors}"
+    <f:entry title="${%Builds are blocked by upstream when}" field="queuePredicates">
+        <f:hetero-list name="predicates" items="${instance.queuePredicates}" hasHeader="true"
+                       descriptors="${descriptor.queuePredicateDescriptors}"
                        targetType="${argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate.class}"/>
     </f:entry>
     <f:entry title="${%Trigger downstream when result equal or better than:}" field="triggerResult">

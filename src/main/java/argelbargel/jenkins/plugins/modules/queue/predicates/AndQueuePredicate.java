@@ -29,7 +29,7 @@ public final class AndQueuePredicate extends CombinedQueuePredicate {
 
     @Extension
     @Symbol("andQueuePredicate")
-    public static final class DescriptorImpl extends ActionsPredicateDescriptor {
+    public static final class DescriptorImpl extends QueuePredicateDescriptor {
         @Nonnull
         @Override
         public String getDisplayName() {
