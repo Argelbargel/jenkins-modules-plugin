@@ -17,7 +17,7 @@ public final class Module extends Node<Job> {
 
     @Override
     public String getTitle() {
-        return getModuleAction(payload()).getModuleName();
+        return getModuleAction(payload()).getJob().getFullDisplayName();
     }
 
     @Override

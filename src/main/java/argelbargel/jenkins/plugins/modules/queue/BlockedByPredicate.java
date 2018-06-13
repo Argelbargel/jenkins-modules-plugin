@@ -1,8 +1,9 @@
 package argelbargel.jenkins.plugins.modules.queue;
 
 
-import com.google.common.base.Predicate;
 import hudson.model.Queue;
+
+import java.util.function.Predicate;
 
 
 class BlockedByPredicate implements Predicate<Queue.Item> {
@@ -13,7 +14,7 @@ class BlockedByPredicate implements Predicate<Queue.Item> {
     }
 
     @Override
-    public boolean apply(Queue.Item input) {
+    public boolean test(Queue.Item input) {
         if (input.getId() == reasonQueueId || !input.isBlocked()) {
             return false;
         }

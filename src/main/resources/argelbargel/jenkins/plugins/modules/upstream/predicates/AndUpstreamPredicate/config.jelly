@@ -2,7 +2,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
     <f:entry field="predicates">
         <f:hetero-list name="predicates" items="${instance.predicates}" hasHeader="true"
-                       descriptors="${descriptor.allQueuePredicateDescriptors}"
-                       targetType="${argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate.class}"/>
+                       descriptors="${descriptor.allUpstreamPredicateDescriptors}"
+                       targetType="${argelbargel.jenkins.plugins.modules.upstream.predicates.UpstreamPredicate.class}"/>
     </f:entry>
 </j:jelly>

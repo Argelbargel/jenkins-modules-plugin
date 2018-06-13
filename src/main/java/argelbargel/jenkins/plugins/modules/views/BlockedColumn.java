@@ -30,7 +30,7 @@ public final class BlockedColumn extends ListViewColumn {
         // order blocked items by queue-id
         Map<Long, Collection<Blocker>> blockers = new TreeMap<>();
 
-        for (Item item : Jenkins.getInstance().getQueue().getItems()) {
+        for (Item item : Jenkins.get().getQueue().getItems()) {
             if (item.task == job) {
                 ModuleBlockedAction blocked = ModuleBlockedAction.get(item);
                 if (blocked != null && blocked.isBlocked()) {

@@ -2,7 +2,6 @@ package argelbargel.jenkins.plugins.modules.queue;
 
 
 import argelbargel.jenkins.plugins.modules.ModuleAction;
-import com.google.common.base.Predicate;
 import hudson.Util;
 import hudson.model.Actionable;
 import hudson.model.InvisibleAction;
@@ -16,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static java.lang.System.currentTimeMillis;
 
@@ -52,9 +52,9 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     private static void cancelItemsBy(Predicate<Item> predicate) {
-        Queue queue = Jenkins.getInstance().getQueue();
+        Queue queue = Jenkins.get().getQueue();
         for (Item item : queue.getItems()) {
-            if (predicate.apply(item)) {
+            if (predicate.test(item)) {
                 queue.cancel(item);
             }
         }
@@ -104,7 +104,7 @@ public final class ModuleBlockedAction extends InvisibleAction {
     }
 
     private void block(long queueId, Job task, Integer build) {
-        blockers.put(queueId, new Blocker(queueId, task.getAction(ModuleAction.class).getModuleName(), task.getFullName(), build, task.getUrl()));
+        blockers.put(queueId, new Blocker(queueId, task.getAction(ModuleAction.class).getModuleName(), task.getFullDisplayName(), build, task.getUrl()));
     }
 
     // use queue-id and build-number so we still show correct data after restarts

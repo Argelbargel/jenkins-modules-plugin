@@ -5,6 +5,7 @@ import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter;
 import argelbargel.jenkins.plugins.modules.parameters.TriggerParameter.TriggerParameterDescriptor;
 import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate;
 import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate.QueuePredicateDescriptor;
+import argelbargel.jenkins.plugins.modules.upstream.UpstreamDependency;
 import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Item;
@@ -104,6 +105,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         triggerResult = result;
     }
 
+    @SuppressWarnings("unused") // used in config.jelly
     public List<QueuePredicate> getQueuePredicates() {
         return action.getQueuePredicates();
     }
@@ -167,7 +169,8 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
 
     @Restricted(NoExternalUse.class)
     public boolean shouldTriggerDownstream(Run<?, ?> upstream) {
-        return shouldTriggerDownstream(upstream.getResult(), upstream.getAction(ParametersAction.class));
+        Result result = upstream.getResult();
+        return result != null && shouldTriggerDownstream(result, upstream.getAction(ParametersAction.class));
     }
 
     private boolean shouldTriggerDownstream(Result result, ParametersAction parameters) {
@@ -244,7 +247,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
                 return FormValidation.error("module name must not be blank");
             }
 
-            Optional<Job<?, ?>> duplicate = findJobs(moduleName).stream()
+            Optional<Job<?, ?>> duplicate = findJobs(moduleName)
                     .filter(j -> !isSameItemOrHasSameGroup(context, j))
                     .findAny();
 

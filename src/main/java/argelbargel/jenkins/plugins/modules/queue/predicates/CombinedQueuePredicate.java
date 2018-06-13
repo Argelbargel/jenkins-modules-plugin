@@ -5,6 +5,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.stream.Stream;
 
 
 public abstract class CombinedQueuePredicate extends QueuePredicate {
@@ -25,8 +26,8 @@ public abstract class CombinedQueuePredicate extends QueuePredicate {
 
     @Override
     public final boolean test(@Nonnull Actions reason, @Nonnull Actions subject) {
-        return test(predicates, reason, subject);
+        return test(predicates.stream(), reason, subject);
     }
 
-    abstract boolean test(List<QueuePredicate> predicates, Actions reason, Actions subject);
+    abstract boolean test(Stream<QueuePredicate> predicates, Actions reason, Actions subject);
 }

@@ -4,7 +4,7 @@
         <d:tag name="blockers"> <!-- @items -->
             <j:forEach var="blocker" items="${items}" varStatus="status">
                 <a class="model-link inside" href="${blocker.url}">
-                    ${blocker.moduleName}
+                    ${blocker.fullDisplayName}
                 </a>
                 <j:if test="${not empty blocker.build}">
                     <a class="model-link inside" href="${blocker.url}${blocker.build}">

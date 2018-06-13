@@ -7,6 +7,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.stream.Stream;
 
 
 public final class AndQueuePredicate extends CombinedQueuePredicate {
@@ -16,14 +17,8 @@ public final class AndQueuePredicate extends CombinedQueuePredicate {
     }
 
     @Override
-    boolean test(List<QueuePredicate> predicates, Actions reason, Actions subject) {
-        for (QueuePredicate predicate : predicates) {
-            if (!predicate.test(reason, subject)) {
-                return false;
-            }
-        }
-
-        return true;
+    boolean test(Stream<QueuePredicate> predicates, Actions reason, Actions subject) {
+        return predicates.allMatch(p -> p.test(reason, subject));
     }
 
 

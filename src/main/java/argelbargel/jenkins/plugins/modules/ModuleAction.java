@@ -3,14 +3,13 @@ package argelbargel.jenkins.plugins.modules;
 
 import argelbargel.jenkins.plugins.modules.queue.predicates.AndQueuePredicate;
 import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate;
+import argelbargel.jenkins.plugins.modules.upstream.UpstreamDependency;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import hudson.model.Actionable;
 import hudson.model.InvisibleAction;
 import hudson.model.Job;
 import hudson.util.XStream2;
 import jenkins.model.Jenkins;
-import org.kohsuke.accmod.Restricted;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -40,7 +39,6 @@ public final class ModuleAction extends InvisibleAction {
 
     ModuleAction(String name) {
         this.name = name;
-        this.dependencies = emptySet();
         this.upstreamDependencies = emptySet();
         this.predicates = emptyList();
         this.waitInterval = 0;
@@ -69,12 +67,6 @@ public final class ModuleAction extends InvisibleAction {
     @SuppressWarnings("unused") // used by jobMain.jelly
     public List<Job> getDownstreamJobs() {
         return ModuleDependencyGraph.get().getDownstream(getJob());
-    }
-
-    @Restricted(NoExternalUse.class)
-    @SuppressWarnings("unused") // used by jobMain.jelly
-    public String moduleName(Job job) {
-        return getModuleAction(job).getModuleName();
     }
 
     public long getDependencyWaitInterval() {
@@ -119,6 +111,7 @@ public final class ModuleAction extends InvisibleAction {
         protected void callback(ModuleAction obj, UnmarshallingContext context) {
             if (obj.dependencies != null) {
                 obj.upstreamDependencies = wrap(obj.dependencies);
+                obj.dependencies = null;
             }
         }
 

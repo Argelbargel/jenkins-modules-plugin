@@ -14,10 +14,8 @@ import org.jgrapht.graph.SimpleDirectedGraph;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -51,12 +49,12 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
     @Exported
     @SuppressWarnings("unused") // used by api/json
     public final String getRootUrl() {
-        return Jenkins.getInstance().getRootUrl();
+        return Jenkins.get().getRootUrl();
     }
 
     @Exported
     @SuppressWarnings("unused") // used by index.jelly
-    public final String getGraph() throws InterruptedException, ExecutionException, ClassNotFoundException, IOException {
+    public final String getGraph() throws InterruptedException, ExecutionException {
         DirectedGraph<Node<PAYLOAD>, Edge> iGraph = this.computeGraph();
 
         Graph graph = new Graph(type);
@@ -85,7 +83,7 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
 
     abstract List<PAYLOAD> getDownstream(PAYLOAD payload, PAYLOAD target) throws ExecutionException, InterruptedException;
 
-    private DirectedGraph<Node<PAYLOAD>, Edge> computeGraph() throws ExecutionException, InterruptedException, ClassNotFoundException, IOException {
+    private DirectedGraph<Node<PAYLOAD>, Edge> computeGraph() throws ExecutionException, InterruptedException {
         if (graph == null) {
             graph = new SimpleDirectedGraph<>(new EdgeFactory());
             nodes = new HashMap<>();
@@ -108,7 +106,7 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
         return nodes.get(payload);
     }
 
-    private void computeGraphFrom(Node<PAYLOAD> node) throws ExecutionException, InterruptedException, IOException {
+    private void computeGraphFrom(Node<PAYLOAD> node) throws ExecutionException, InterruptedException {
         for (PAYLOAD downstream : getDownstream(node.payload(), payload)) {
             Node<PAYLOAD> next = getOrCreateNode(downstream);
             graph.addVertex(next);
@@ -123,11 +121,7 @@ public abstract class AbstractModuleGraph<PAYLOAD> {
     private void setupDisplayGrid(Node<PAYLOAD> node) {
         List<List<Node>> allPaths = findAllPaths(node);
         // make the longer paths bubble up to the top
-        Collections.sort(allPaths, new Comparator<List>() {
-            public int compare(List paths1, List paths2) {
-                return paths2.size() - paths1.size();
-            }
-        });
+        allPaths.sort((Comparator<List>) (paths1, paths2) -> paths2.size() - paths1.size());
         // set the node row and column of each node
         // loop backwards through the rows so that the lowest path a job is on
         // will be assigned

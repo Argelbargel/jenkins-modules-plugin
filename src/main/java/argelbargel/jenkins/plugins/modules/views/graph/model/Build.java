@@ -10,7 +10,6 @@ import java.text.DateFormat;
 import java.util.LinkedList;
 import java.util.List;
 
-import static argelbargel.jenkins.plugins.modules.ModuleAction.getModuleAction;
 import static java.lang.Math.round;
 import static java.lang.System.currentTimeMillis;
 
@@ -26,7 +25,7 @@ public class Build extends Node<Run> {
     }
 
     public String getTitle() {
-        return getModuleAction(payload().getParent()).getModuleName() + " #" + payload().getNumber();
+        return payload().getFullDisplayName();
     }
 
     public String getDescription() {

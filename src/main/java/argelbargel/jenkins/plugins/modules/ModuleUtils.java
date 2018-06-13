@@ -1,25 +1,24 @@
 package argelbargel.jenkins.plugins.modules;
 
 
+import argelbargel.jenkins.plugins.modules.upstream.UpstreamDependency;
 import hudson.model.Job;
 import jenkins.model.Jenkins;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static argelbargel.jenkins.plugins.modules.ModuleAction.getModuleAction;
-import static argelbargel.jenkins.plugins.modules.UpstreamDependency.names;
+import static argelbargel.jenkins.plugins.modules.upstream.UpstreamDependency.upstreamDependencyNames;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
 
-final class ModuleUtils {
-    static Set<String> allModuleNames() {
+public final class ModuleUtils {
+    public static Set<String> allModuleNames() {
         Set<String> names = new HashSet<>();
         all().forEach(module -> {
                     names.add(module.getModuleName());
@@ -33,15 +32,11 @@ final class ModuleUtils {
         return all().map(ModuleAction::getModuleName).collect(toSet());
     }
 
-    static Collection<Job<?, ?>> findJobs(String name, Predicate<Job<?, ?>> predicate) {
-        return withName(name).map(ModuleAction::getJob).filter(predicate).collect(toSet());
+    public static Stream<Job<?, ?>> findJobs(String name) {
+        return withName(name).map(ModuleAction::getJob);
     }
 
-    static Collection<Job<?, ?>> findJobs(String name) {
-        return findJobs(name, j -> true);
-    }
-
-    static Set<String> buildDownstream(String name) {
+    public static Set<String> buildDownstream(String name) {
         Set<String> upstream = new HashSet<>();
         buildDownstream(upstream, name);
         return upstream;
@@ -60,7 +55,7 @@ final class ModuleUtils {
 
     private static void buildDownstream(Set<String> downstream, String name) {
         withName(name)
-                .filter(m -> !downstream.contains(m.getModuleName()) && names(m.getUpstreamDependencies()).contains(name))
+                .filter(m -> !downstream.contains(m.getModuleName()) && upstreamDependencyNames(m.getUpstreamDependencies()).contains(name))
                 .map(ModuleAction::getModuleName)
                 .forEach(n -> {
                     downstream.add(n);
@@ -68,7 +63,7 @@ final class ModuleUtils {
                 });
     }
 
-    static Set<String> buildUpstream(String name) {
+    public static Set<String> buildUpstream(String name) {
         Set<String> upstream = new HashSet<>();
         buildUpstream(upstream, name);
         return upstream;

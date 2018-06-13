@@ -5,6 +5,7 @@ import hudson.init.InitMilestone;
 import hudson.init.Initializer;
 import hudson.model.Job;
 import hudson.security.ACL;
+import hudson.security.ACLContext;
 import jenkins.model.Jenkins;
 import jenkins.util.DirectedGraph;
 
@@ -65,13 +66,12 @@ public final class ModuleDependencyGraph {
     @Initializer(after = InitMilestone.JOB_LOADED)
     @SuppressWarnings("WeakerAccess") // must be public to be detected as initializer
     public static void rebuild() {
-        ACL.impersonate(ACL.SYSTEM, () -> {
+        try (ACLContext ignored = ACL.as(ACL.SYSTEM)) {
             ModuleDependencyGraph graph = build(new ModuleDependencyGraph());
-
             synchronized (LOCK) {
                 instance = graph;
             }
-        });
+        }
     }
 
     private static ModuleDependencyGraph build(ModuleDependencyGraph graph) {
@@ -194,7 +194,7 @@ public final class ModuleDependencyGraph {
      * A non-direct dependency is a path of dependency "edge"s from the source to the destination,
      * where the length is greater than 1.
      */
-    @SuppressWarnings("unused") // part of public API
+    @SuppressWarnings({"unused", "BooleanMethodIsAlwaysInverted"}) // part of public API
     public boolean hasIndirectDependencies(Job src, Job dst) {
         Set<Job> visited = new HashSet<>();
         Stack<Job> queue = new Stack<>();
@@ -215,7 +215,7 @@ public final class ModuleDependencyGraph {
         return false;
     }
 
-    void addUpstreamDependency(Job upstream, Job downstream) {
+    public void addUpstreamDependency(Job upstream, Job downstream) {
         addDependency(new ModuleDependency(upstream, downstream));
     }
 

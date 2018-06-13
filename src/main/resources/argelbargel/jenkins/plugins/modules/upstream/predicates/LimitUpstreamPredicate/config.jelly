@@ -1,0 +1,5 @@
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:entry title="${%max. jobs:}" field="limit">
+        <f:textbox/>
+    </f:entry>
+</j:jelly>

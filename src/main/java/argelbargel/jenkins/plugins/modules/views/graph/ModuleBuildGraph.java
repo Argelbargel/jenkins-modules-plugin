@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 import static argelbargel.jenkins.plugins.modules.views.graph.model.GraphType.BUILD;
 
@@ -77,7 +76,7 @@ public class ModuleBuildGraph extends AbstractModuleGraph<Run> implements Action
 
     @SuppressWarnings("unchecked")
     @Override
-    protected List<Run> getDownstream(Run payload, Run target) throws ExecutionException, InterruptedException {
+    protected List<Run> getDownstream(Run payload, Run target) {
         List<Run> runs = new ArrayList<>();
 
         Job parent = payload.getParent();

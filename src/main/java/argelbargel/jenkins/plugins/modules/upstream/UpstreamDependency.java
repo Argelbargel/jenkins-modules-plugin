@@ -1,7 +1,12 @@
-package argelbargel.jenkins.plugins.modules;
+package argelbargel.jenkins.plugins.modules.upstream;
 
 
-import argelbargel.jenkins.plugins.modules.UpstreamPredicate.UpstreamPredicateDescriptor;
+import argelbargel.jenkins.plugins.modules.ModuleAction;
+import argelbargel.jenkins.plugins.modules.ModuleDependencyGraph;
+import argelbargel.jenkins.plugins.modules.ModuleUtils;
+import argelbargel.jenkins.plugins.modules.upstream.predicates.AndUpstreamPredicate;
+import argelbargel.jenkins.plugins.modules.upstream.predicates.UpstreamPredicate;
+import argelbargel.jenkins.plugins.modules.upstream.predicates.UpstreamPredicate.UpstreamPredicateDescriptor;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
@@ -18,45 +23,53 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import static argelbargel.jenkins.plugins.modules.ModuleAction.getModuleAction;
-import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildDownstream;
-import static argelbargel.jenkins.plugins.modules.ModuleUtils.buildUpstream;
 import static argelbargel.jenkins.plugins.modules.ModuleUtils.findJobs;
-import static java.util.Collections.emptySet;
+import static java.util.Collections.emptyList;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
 
 @Symbol("upstreamDependency")
 public final class UpstreamDependency extends AbstractDescribableImpl<UpstreamDependency> implements Serializable {
-    static Set<String> names(Collection<UpstreamDependency> dependencies) {
+    public static Set<String> upstreamDependencyNames(Collection<UpstreamDependency> dependencies) {
         return dependencies.stream()
                 .map(UpstreamDependency::getName)
                 .collect(toSet());
     }
 
-    private final String name;
-    private Collection<UpstreamPredicate> predicates;
+    private String name;
+    private List<UpstreamPredicate> predicates;
+
+    @Restricted(NoExternalUse.class)
+    public UpstreamDependency(String name) {
+        this(name, emptyList());
+    }
 
     @DataBoundConstructor
     @Restricted(NoExternalUse.class)
-    public UpstreamDependency(String name) {
+    public UpstreamDependency(String name, List<UpstreamPredicate> predicates) {
         this.name = name;
-        predicates = emptySet();
+        this.predicates = predicates;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
 
     public String getName() {
         return name;
     }
 
-    public void setPredicates(Collection<UpstreamPredicate> predicates) {
+    public void setPredicates(List<UpstreamPredicate> predicates) {
         this.predicates = predicates;
     }
 
@@ -64,15 +77,17 @@ public final class UpstreamDependency extends AbstractDescribableImpl<UpstreamDe
         return predicates;
     }
 
-    @SuppressWarnings("WeakerAccess") // wird von config.jelly benötigt
+    @SuppressWarnings("unused") // wird von config.jelly benötigt
     public Collection<Job<?, ?>> getJobs() {
-        // TODO: das muss doch besser gehen...
-        Collection<Predicate<Job<?, ?>>> p = new ArrayList<>(predicates);
-        return findJobs(name, p.stream().reduce(Predicate::and).orElse(c -> true));
+        return findJobs(name).collect(toSet());
     }
 
-    void addUpstreamDependencies(ModuleDependencyGraph graph, Job owner) {
-        getJobs().forEach(j -> graph.addUpstreamDependency(j, owner));
+    public void addUpstreamDependencies(ModuleDependencyGraph graph, Job owner) {
+        UpstreamPredicate predicate = new AndUpstreamPredicate(predicates).reset();
+        findJobs(name)
+                .sorted((u1, u2) -> predicate.compare(u1, u2, owner))
+                .filter(u -> predicate.test(u, owner))
+                .forEach(u -> graph.addUpstreamDependency(u, owner));
     }
 
     @Override
@@ -99,6 +114,7 @@ public final class UpstreamDependency extends AbstractDescribableImpl<UpstreamDe
 
 
     @Extension
+    @Symbol("upstreamDependency")
     public static class DependencyDescriptor extends Descriptor<UpstreamDependency> {
         @SuppressWarnings("unused") // used by config.jelly
         public List<UpstreamPredicateDescriptor> getPredicateDescriptors() {
@@ -118,7 +134,7 @@ public final class UpstreamDependency extends AbstractDescribableImpl<UpstreamDe
                 return FormValidation.error("module name must not be blank");
             }
 
-            if (buildUpstream(name).contains(getModuleAction(context).getModuleName())) {
+            if (ModuleUtils.buildUpstream(name).contains(name)) {
                 return FormValidation.error("circular dependency between this module and " + name);
             }
 
@@ -130,11 +146,11 @@ public final class UpstreamDependency extends AbstractDescribableImpl<UpstreamDe
         public ComboBoxModel doFillNameItems(@AncestorInPath Job context) {
             Set<String> names = new HashSet<>(ModuleUtils.allModuleNames());
 
-            String current = getModuleAction(context).getModuleName();
-            if (current != null) {
-                names.remove(current);
-                names.removeAll(buildDownstream(current));
-                names.removeAll(buildUpstream(current));
+            Optional<String> current = ofNullable(getModuleAction(context)).map(ModuleAction::getModuleName);
+            if (current.isPresent()) {
+                names.remove(current.get());
+                names.removeAll(ModuleUtils.buildDownstream(current.get()));
+                names.removeAll(ModuleUtils.buildUpstream(current.get()));
             }
 
             return new ComboBoxModel(names);

@@ -42,7 +42,7 @@ public final class ModuleViewFilter extends AbstractIncludeExcludeJobFilter {
     }
 
     private boolean isBlocked(TopLevelItem item) {
-        for (Queue.Item queued : Jenkins.getInstance().getQueue().getItems()) {
+        for (Queue.Item queued : Jenkins.get().getQueue().getItems()) {
             if (queued.task == item) {
                 ModuleBlockedAction blocked = ModuleBlockedAction.get(queued);
                 return blocked != null && blocked.isBlocked();

@@ -10,7 +10,7 @@
                             <li>
                                 <l:icon alt="${item.iconColor.description}"
                                         class="${item.buildStatusIconClassName} icon-sm"/>
-                                <a class="model-link inside" href="${rootURL}/${item.url}">${it.moduleName(item)}</a>
+                                <a class="model-link inside" href="${rootURL}/${item.url}">${item.fullDisplayName}</a>
                             </li>
                         </j:if>
                     </j:forEach>

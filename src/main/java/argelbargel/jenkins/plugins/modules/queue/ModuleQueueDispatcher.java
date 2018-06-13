@@ -49,7 +49,7 @@ public final class ModuleQueueDispatcher extends QueueTaskDispatcher {
 
     private CauseOfBlockage canRun(Item waiting, Collection<Job> upstream, QueuePredicate predicate) {
         for (Job<?, ?> job : upstream) {
-            Item item = filter(predicate, waiting, Jenkins.getInstance().getQueue().getItems((Task) job));
+            Item item = filter(predicate, waiting, Jenkins.get().getQueue().getItems((Task) job));
             if (item != null) {
                 LOGGER.info(job.getFullDisplayName() + " is blocked by " + item.task.getFullDisplayName());
                 ModuleBlockedAction.block(waiting, item);

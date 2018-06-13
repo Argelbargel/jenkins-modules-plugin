@@ -69,7 +69,7 @@ class DownstreamTrigger {
                     }
 
                     Collection<Action> actions = createDownstreamActions(job);
-                    triggerDownstreamBuild(job, actions.toArray(new Action[actions.size()]));
+                    triggerDownstreamBuild(job, actions.toArray(new Action[0]));
                 }
             }
         }
@@ -135,7 +135,7 @@ class DownstreamTrigger {
     private void triggerDownstreamBuild(Job<?, ?> job, Action[] actions) {
         if (isEnabled(job, logger)) {
             boolean scheduled = scheduleBuild(job, actions);
-            if (Jenkins.getInstance().getItemByFullName(job.getFullName()) == job) {
+            if (Jenkins.get().getItemByFullName(job.getFullName()) == job) {
                 String name = ModelHyperlinkNote.encodeTo(job);
                 if (scheduled) {
                     logger.println(hudson.tasks.Messages.BuildTrigger_Triggering(name));

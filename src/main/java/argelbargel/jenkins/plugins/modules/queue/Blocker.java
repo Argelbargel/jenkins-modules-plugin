@@ -13,14 +13,14 @@ import java.io.Serializable;
 public final class Blocker implements Serializable {
     private final long queueId;
     private final String moduleName;
-    private final String fullName;
+    private final String fullDisplayName;
     private final Integer build;
     private final String url;
 
-    Blocker(long id, String moduleName, String fullName, Integer build, String url) {
+    Blocker(long id, String moduleName, String fullDisplayName, Integer build, String url) {
         this.queueId = id;
         this.moduleName = moduleName;
-        this.fullName = fullName;
+        this.fullDisplayName = fullDisplayName;
         this.build = build;
         this.url = url;
     }
@@ -29,8 +29,8 @@ public final class Blocker implements Serializable {
         return moduleName;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getFullDisplayName() {
+        return fullDisplayName;
     }
 
     public Integer getBuild() {
@@ -44,9 +44,9 @@ public final class Blocker implements Serializable {
 
     boolean isBlocking() {
         if (build != null) {
-            return isBlocking(Jenkins.getInstance().getItemByFullName(fullName, Job.class));
+            return isBlocking(Jenkins.get().getItemByFullName(fullDisplayName, Job.class));
         } else {
-            return isBlocking(Jenkins.getInstance().getQueue().getItem(queueId));
+            return isBlocking(Jenkins.get().getQueue().getItem(queueId));
         }
     }
 

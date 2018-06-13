@@ -64,7 +64,7 @@ public abstract class TriggerParameter extends AbstractDescribableImpl<TriggerPa
         }
 
         public static List<TriggerParameterDescriptor> getAll() {
-            return Jenkins.getInstance().getDescriptorList(TriggerParameter.class);
+            return Jenkins.get().getDescriptorList(TriggerParameter.class);
         }
 
         @SuppressWarnings("unused") // used by config.jelly
