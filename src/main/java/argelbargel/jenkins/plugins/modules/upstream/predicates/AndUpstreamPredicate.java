@@ -10,12 +10,15 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
+import static java.util.Optional.ofNullable;
+
 
 @SuppressWarnings("unused") // extension
 public final class AndUpstreamPredicate extends CombinedUpstreamPredicate {
     @DataBoundConstructor
-    public AndUpstreamPredicate(@Nonnull List<UpstreamPredicate> predicates) {
-        super(predicates);
+    public AndUpstreamPredicate(List<UpstreamPredicate> predicates) {
+        super(ofNullable(predicates).orElse(emptyList()));
     }
 
     @Override
