@@ -67,9 +67,8 @@ public final class ModuleDependencyGraph {
     @SuppressWarnings("WeakerAccess") // must be public to be detected as initializer
     public static void rebuild() {
         try (ACLContext ignored = ACL.as(ACL.SYSTEM)) {
-            ModuleDependencyGraph graph = build(new ModuleDependencyGraph());
             synchronized (LOCK) {
-                instance = graph;
+                instance = build(new ModuleDependencyGraph());
             }
         }
     }

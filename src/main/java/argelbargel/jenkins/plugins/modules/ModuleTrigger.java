@@ -7,6 +7,7 @@ import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate;
 import argelbargel.jenkins.plugins.modules.queue.predicates.QueuePredicate.QueuePredicateDescriptor;
 import argelbargel.jenkins.plugins.modules.upstream.UpstreamDependency;
 import hudson.Extension;
+import hudson.init.InitMilestone;
 import hudson.model.Action;
 import hudson.model.Item;
 import hudson.model.Job;
@@ -148,13 +149,17 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     @Override
     public void start(ParameterizedJob project, boolean newInstance) {
         super.start(project, newInstance);
-        ModuleDependencyGraph.rebuild();
+        if (Jenkins.get().getInitLevel().compareTo(InitMilestone.JOB_LOADED) >= 0) {
+            ModuleDependencyGraph.rebuild();
+        }
     }
 
     @Override
     public void stop() {
         super.stop();
-        ModuleDependencyGraph.rebuild();
+        if (!Jenkins.get().isTerminating()) {
+            ModuleDependencyGraph.rebuild();
+        }
     }
 
     @Override
