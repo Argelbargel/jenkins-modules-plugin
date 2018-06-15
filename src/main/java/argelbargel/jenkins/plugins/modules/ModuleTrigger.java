@@ -149,7 +149,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     @Override
     public void start(ParameterizedJob project, boolean newInstance) {
         super.start(project, newInstance);
-        if (Jenkins.get().getInitLevel().compareTo(InitMilestone.JOB_LOADED) >= 0) {
+        if (shouldRebuildDependencyGraph()) {
             ModuleDependencyGraph.rebuild();
         }
     }
@@ -157,9 +157,14 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     @Override
     public void stop() {
         super.stop();
-        if (!Jenkins.get().isTerminating()) {
+        if (shouldRebuildDependencyGraph()) {
             ModuleDependencyGraph.rebuild();
         }
+    }
+
+    private boolean shouldRebuildDependencyGraph() {
+        Jenkins instance = Jenkins.get();
+        return !instance.isTerminating() && instance.getInitLevel().compareTo(InitMilestone.JOB_LOADED) >= 0;
     }
 
     @Override
