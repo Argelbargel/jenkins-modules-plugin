@@ -1,5 +1,10 @@
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <f:entry title="${%max. jobs:}" field="limit">
+    <f:entry field="predicates">
+        <f:hetero-list name="predicates" items="${instance.predicates}" hasHeader="true"
+                       descriptors="${descriptor.allUpstreamPredicateDescriptors}"
+                       targetType="${argelbargel.jenkins.plugins.modules.upstream.predicates.UpstreamPredicate.class}"/>
+    </f:entry>
+    <f:entry title="${%Limit:}" field="limit">
         <f:textbox/>
     </f:entry>
 </j:jelly>

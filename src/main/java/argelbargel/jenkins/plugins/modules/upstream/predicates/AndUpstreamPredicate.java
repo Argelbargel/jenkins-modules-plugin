@@ -15,7 +15,7 @@ import static java.util.Optional.ofNullable;
 
 
 @SuppressWarnings("unused") // extension
-public final class AndUpstreamPredicate extends CombinedUpstreamPredicate {
+public class AndUpstreamPredicate extends CombinedUpstreamPredicate {
     @DataBoundConstructor
     public AndUpstreamPredicate(List<UpstreamPredicate> predicates) {
         super(ofNullable(predicates).orElse(emptyList()));
