@@ -56,7 +56,7 @@ public final class ModuleDependencyGraph {
                 return 1;
             }
 
-            return lhs.getName().compareTo(rhs.getName());
+            return lhs.getFullName().compareTo(rhs.getFullName());
         }
     };
 
