@@ -77,7 +77,7 @@ public final class ModuleDependencyGraph {
         for (Job job : Jenkins.get().getAllItems(Job.class)) {
             ModuleTrigger trigger = ModuleTrigger.get(job);
             if (trigger != null) {
-                trigger.addUpstreamDependencies(graph, job);
+                graph.update(trigger, false);
             }
         }
 
@@ -101,6 +101,29 @@ public final class ModuleDependencyGraph {
     private ModuleDependencyGraph() {
         forward = new HashMap<>();
         backward = new HashMap<>();
+    }
+
+    public void update(ModuleTrigger trigger) {
+        update(trigger, true);
+    }
+
+    private void update(ModuleTrigger trigger, boolean reSort) {
+        remove(trigger, false);
+        trigger.addUpstreamDependencies(this);
+        if (reSort) {
+            topologicalDagSort();
+        }
+    }
+
+    public void remove(ModuleTrigger trigger) {
+        remove(trigger, true);
+    }
+
+    private void remove(ModuleTrigger trigger, boolean reSort) {
+        removeDependencies(trigger.getOwner());
+        if (reSort) {
+            topologicalDagSort();
+        }
     }
 
     public Collection<Job> getRoots(Job job) {
@@ -222,8 +245,17 @@ public final class ModuleDependencyGraph {
      * Called during the dependency graph build phase to add a dependency edge.
      */
     private void addDependency(ModuleDependency dep) {
-        add(forward, dep.getUpstreamJob(), dep);
-        add(backward, dep.getDownstreamJob(), dep);
+        synchronized (LOCK) {
+            add(forward, dep.getUpstreamJob(), dep);
+            add(backward, dep.getDownstreamJob(), dep);
+        }
+    }
+
+    private void removeDependencies(Job job) {
+        synchronized (LOCK) {
+            forward.values().forEach(deps -> deps.removeIf(dep -> job.equals(dep.getDownstreamJob())));
+            backward.remove(job);
+        }
     }
 
     private boolean hasDependencies(Map<Job, Set<ModuleDependency>> map, Job job) {

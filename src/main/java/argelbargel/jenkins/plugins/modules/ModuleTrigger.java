@@ -59,7 +59,7 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     private boolean triggerWithCurrentParameters;
     private List<TriggerParameter> triggerParameters;
     private List<TriggerParameter> downstreamParameters;
-
+    private transient Job owner;
 
     @DataBoundConstructor
     public ModuleTrigger(String moduleName) {
@@ -149,20 +149,28 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
     @Override
     public void start(ParameterizedJob project, boolean newInstance) {
         super.start(project, newInstance);
+        owner = (Job) project;
+
         if (shouldRebuildDependencyGraph()) {
-            ModuleDependencyGraph.rebuild();
+            ModuleDependencyGraph.get().update(this);
         }
     }
 
     @Override
     public void stop() {
-        super.stop();
         if (shouldRebuildDependencyGraph()) {
-            ModuleDependencyGraph.rebuild();
+            ModuleDependencyGraph.get().remove(this);
         }
+
+        owner = null;
+        super.stop();
     }
 
     private boolean shouldRebuildDependencyGraph() {
+        if (owner == null) {
+            return false;
+        }
+
         Jenkins instance = Jenkins.get();
         return !instance.isTerminating() && instance.getInitLevel().compareTo(InitMilestone.JOB_LOADED) >= 0;
     }
@@ -197,7 +205,15 @@ public final class ModuleTrigger extends Trigger<ParameterizedJob> {
         return true;
     }
 
-    void addUpstreamDependencies(ModuleDependencyGraph graph, Job<?, ?> owner) {
+    Job getOwner() {
+        return owner;
+    }
+
+    void addUpstreamDependencies(ModuleDependencyGraph graph) {
+        if (owner == null) {
+            throw new IllegalArgumentException("trigger was not yet started!");
+        }
+
         action.addUpstreamDependencies(graph, owner);
     }
 
