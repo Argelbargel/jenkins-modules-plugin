@@ -108,10 +108,12 @@ public final class ModuleDependencyGraph {
     }
 
     private void update(ModuleTrigger trigger, boolean reSort) {
-        remove(trigger, false);
-        trigger.addUpstreamDependencies(this);
-        if (reSort) {
-            topologicalDagSort();
+        synchronized (LOCK) {
+            remove(trigger, false);
+            trigger.addUpstreamDependencies(this);
+            if (reSort) {
+                topologicalDagSort();
+            }
         }
     }
 
@@ -120,9 +122,11 @@ public final class ModuleDependencyGraph {
     }
 
     private void remove(ModuleTrigger trigger, boolean reSort) {
-        removeDependencies(trigger.getOwner());
-        if (reSort) {
-            topologicalDagSort();
+        synchronized (LOCK) {
+            removeDependencies(trigger.getOwner());
+            if (reSort) {
+                topologicalDagSort();
+            }
         }
     }
 
@@ -238,6 +242,14 @@ public final class ModuleDependencyGraph {
     }
 
     public void addUpstreamDependency(Job upstream, Job downstream) {
+        if (upstream.equals(downstream)) {
+            throw new IllegalArgumentException(downstream.getFullName() + " can not depend on itself");
+        }
+
+        if (getTransitiveUpstream(upstream).contains(downstream)) {
+            throw new IllegalArgumentException(upstream.getFullName() + " already depends transitively on " + downstream);
+        }
+
         addDependency(new ModuleDependency(upstream, downstream));
     }
 
@@ -245,17 +257,13 @@ public final class ModuleDependencyGraph {
      * Called during the dependency graph build phase to add a dependency edge.
      */
     private void addDependency(ModuleDependency dep) {
-        synchronized (LOCK) {
-            add(forward, dep.getUpstreamJob(), dep);
-            add(backward, dep.getDownstreamJob(), dep);
-        }
+        add(forward, dep.getUpstreamJob(), dep);
+        add(backward, dep.getDownstreamJob(), dep);
     }
 
     private void removeDependencies(Job job) {
-        synchronized (LOCK) {
-            forward.values().forEach(deps -> deps.removeIf(dep -> job.equals(dep.getDownstreamJob())));
-            backward.remove(job);
-        }
+        forward.values().forEach(deps -> deps.removeIf(dep -> job.equals(dep.getDownstreamJob())));
+        backward.remove(job);
     }
 
     private boolean hasDependencies(Map<Job, Set<ModuleDependency>> map, Job job) {
