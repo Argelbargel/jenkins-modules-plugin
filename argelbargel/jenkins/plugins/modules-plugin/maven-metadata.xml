@@ -3,10 +3,10 @@
   <groupId>argelbargel.jenkins.plugins</groupId>
   <artifactId>modules-plugin</artifactId>
   <versioning>
-    <release>0.21-dev</release>
+    <release>0.21.1-dev</release>
     <versions>
-      <version>0.21-dev</version>
+      <version>0.21.1-dev</version>
     </versions>
-    <lastUpdated>20180619144547</lastUpdated>
+    <lastUpdated>20180620084132</lastUpdated>
   </versioning>
 </metadata>
