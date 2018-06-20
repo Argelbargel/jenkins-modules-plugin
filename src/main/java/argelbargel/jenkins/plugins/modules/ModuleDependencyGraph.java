@@ -247,7 +247,7 @@ public final class ModuleDependencyGraph {
         }
 
         if (getTransitiveUpstream(upstream).contains(downstream)) {
-            throw new IllegalArgumentException(upstream.getFullName() + " already depends transitively on " + downstream);
+            throw new IllegalArgumentException(upstream.getFullName() + " already depends transitively on " + downstream.getFullName());
         }
 
         addDependency(new ModuleDependency(upstream, downstream));
