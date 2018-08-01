@@ -37,6 +37,14 @@ public final class Blocker implements Serializable {
         return build;
     }
 
+    public Run getRun() {
+        if (build == null) {
+            return null;
+        }
+        Job job = Jenkins.get().getItemByFullName(fullDisplayName, Job.class);
+        return job != null ? job.getBuildByNumber(build) : null;
+    }
+
     @SuppressWarnings("unused")// used by summary.jelly
     public String getUrl() {
         return url;
