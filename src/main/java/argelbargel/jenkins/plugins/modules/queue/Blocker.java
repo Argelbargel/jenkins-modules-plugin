@@ -37,6 +37,11 @@ public final class Blocker implements Serializable {
         return build;
     }
 
+    public String getProjectName() {
+        Job job = Jenkins.get().getItemByFullName(fullDisplayName, Job.class);
+        return job != null ? job.getFullName() : null;
+    }
+
     public Run getRun() {
         if (build == null) {
             return null;
