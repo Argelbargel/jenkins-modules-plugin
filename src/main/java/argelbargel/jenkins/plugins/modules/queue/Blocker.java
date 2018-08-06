@@ -13,14 +13,14 @@ import java.io.Serializable;
 public final class Blocker implements Serializable {
     private final long queueId;
     private final String moduleName;
-    private final String fullDisplayName;
+    private final String fullName;
     private final Integer build;
     private final String url;
 
-    Blocker(long id, String moduleName, String fullDisplayName, Integer build, String url) {
+    Blocker(long id, String moduleName, String fullName, Integer build, String url) {
         this.queueId = id;
         this.moduleName = moduleName;
-        this.fullDisplayName = fullDisplayName;
+        this.fullName = fullName;
         this.build = build;
         this.url = url;
     }
@@ -30,7 +30,8 @@ public final class Blocker implements Serializable {
     }
 
     public String getFullDisplayName() {
-        return fullDisplayName;
+        Job job = Jenkins.get().getItemByFullName(fullName, Job.class);
+        return job != null ? job.getFullDisplayName() : null;
     }
 
     public Integer getBuild() {
@@ -38,7 +39,12 @@ public final class Blocker implements Serializable {
     }
 
     public String getProjectName() {
-        Job job = Jenkins.get().getItemByFullName(fullDisplayName, Job.class);
+        Job job = Jenkins.get().getItemByFullName(fullName, Job.class);
+        return job != null ? job.getName() : null;
+    }
+
+    public String getProjectFullName() {
+        Job job = Jenkins.get().getItemByFullName(fullName, Job.class);
         return job != null ? job.getFullName() : null;
     }
 
@@ -46,7 +52,7 @@ public final class Blocker implements Serializable {
         if (build == null) {
             return null;
         }
-        Job job = Jenkins.get().getItemByFullName(fullDisplayName, Job.class);
+        Job job = Jenkins.get().getItemByFullName(fullName, Job.class);
         return job != null ? job.getBuildByNumber(build) : null;
     }
 
@@ -57,7 +63,7 @@ public final class Blocker implements Serializable {
 
     boolean isBlocking() {
         if (build != null) {
-            return isBlocking(Jenkins.get().getItemByFullName(fullDisplayName, Job.class));
+            return isBlocking(Jenkins.get().getItemByFullName(fullName, Job.class));
         } else {
             return isBlocking(Jenkins.get().getQueue().getItem(queueId));
         }
