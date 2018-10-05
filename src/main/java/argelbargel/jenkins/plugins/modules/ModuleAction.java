@@ -56,7 +56,7 @@ public final class ModuleAction extends InvisibleAction {
     public Job<?, ?> getJob() {
         return Jenkins.get().getAllItems(Job.class).stream()
                 .filter(j -> ofNullable(getModuleAction(j)).filter(this::equals).isPresent())
-                .findFirst().orElseThrow(IllegalStateException::new);
+                .findFirst().orElseThrow(() -> new IllegalStateException("could not find job for module " + getModuleName()));
     }
 
     @SuppressWarnings("unused") // used by jobMain.jelly
