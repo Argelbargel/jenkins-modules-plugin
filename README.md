@@ -54,10 +54,10 @@ for all of them. Currently you can model the downstream-depedencies using the [P
 or a [Parameterized Trigger](https://plugins.jenkins.io/parameterized-trigger) but this way the downstream projects will
 always be triggered if any upstream-project is completed. In this case the views-component is built three times; the 
 first time when common is completed, the second time and third time when the model and the controller projects are
-completed. This plugin recognizes the dependencies and doesn't trigger the build until the controller-component finishes
+completed. This plugin recognizes the dependencies and doesn't trigger the views-build until the controller-component finishes
 building. 
 Additionally, when you make a change to both the common and the views-component at the same time, it blocks the build of
-the views-component until all it's upstream-dependencies have completed their builds.
+the views-component until all its upstream-dependencies have completed their builds.
 When there are many developers you can configure the plugin so that it recognizes which changes originate from the same
 developer so that the pipeline are run in parallel for each set of changes.
 
